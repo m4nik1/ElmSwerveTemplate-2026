@@ -46,7 +46,7 @@ public final class Constants {
   public static final Rotation2d angleOffsetMod0 = Rotation2d.fromRotations(.0307);
   public static final Rotation2d angleOffsetMod1 = Rotation2d.fromRotations(.4701);
   public static final Rotation2d angleOffsetMod2 = Rotation2d.fromRotations(.6385);
-  public static final Rotation2d angleOffsetMod3 = Rotation2d.fromRotations(.2001);
+  public static final Rotation2d angleOffsetMod3 = Rotation2d.fromRotations(.7060);
 
   public static final boolean driveStatorEnable = true;
   public static final double driveStatorCurrentLimit = 60;

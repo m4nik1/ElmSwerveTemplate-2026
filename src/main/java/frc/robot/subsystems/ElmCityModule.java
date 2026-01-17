@@ -269,7 +269,7 @@ public class ElmCityModule extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("Distance (M)" + modNum, getDrivePosMeters());
-    SmartDashboard.putNumber("Nac coder rot " + modNum, getNac());
+    SmartDashboard.putNumber("Nac coder " + modNum, getNac());
 
     Logger.recordOutput("Distance (M)" + modNum, getDrivePosMeters());
     Logger.recordOutput("Velocity " + modNum , getDriveVelocityConversion());

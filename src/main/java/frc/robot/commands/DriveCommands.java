@@ -15,33 +15,23 @@ public class DriveCommands {
 
     // Drive only in teleop
     public static Command teleopDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier rotationSupplier) {
-        // Setup variables
-
-        // Speed multipler for driving
         double speedMultipler = Constants.speedMultiTeleop;
+        SlewRateLimiter translationLimiter = new SlewRateLimiter(3.0);
+        SlewRateLimiter strafeLimiter = new SlewRateLimiter(3.0);
+        SlewRateLimiter rotationLimiter = new SlewRateLimiter(3.0);
 
-        // Slew Rate Limiters for smooth driving
-        SlewRateLimiter translationLimiter = 
-        SlewRateLimiter strafeLimiter = 
-        SlewRateLimiter rotationLimiter = 
-
-        // Now running the command
         return Commands.run(() ->  {
-            // Get the joystick inputs
-            double getX = 
-            double getY = 
-            double getRotation = 
+            double getX = xSupplier.getAsDouble();
+            double getY = ySupplier.getAsDouble();
+            double getRotation = rotationSupplier.getAsDouble();
 
-            // Calculate and apply deadband the values of each
-            double translateVal = 
-            double strafeVal = 
-            double rotationVal = 
+            double translateVal = translationLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getX, 01));
+            double strafeVal = strafeLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getY, 01));
+            double rotationVal = rotationLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getRotation, 01));
 
-            // Add the translate and strafe values to translate2d object
-            Translation2d translation = 
+            Translation2d translation = new Translation2d(translateVal, strafeVal);
 
-            // Send the translation and rotation values to drive object
-            RobotContainer.driveTrain.drive();
+            RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotationVal * Constants.maxAngularSpd);
 
         }
         , RobotContainer.driveTrain);

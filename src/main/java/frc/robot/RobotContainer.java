@@ -4,25 +4,39 @@
 
 package frc.robot;
 
-import frc.robot.commands.Autos;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.ExampleCommand;
+import frc.robot.commands.EmptyCommand;
 import frc.robot.subsystems.DriveTrain;
-import frc.robot.subsystems.ExampleSubsystem;
+import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 
 public class RobotContainer {
   // The robot's subsystems and commands are defined here
   public static DriveTrain driveTrain = new DriveTrain();
+  public static Field2d field = new Field2d();
+  public static SendableChooser<Command> autoChooser;
+
+  private final CommandXboxController controller = new CommandXboxController(0);
 
   public RobotContainer() {
     // Configure the trigger bindings
-    drivetrain.setDefaultCommand(DriveCommands.teleopDrive(null, null, null))
-
+    driveTrain.setDefaultCommand(
+      DriveCommands.teleopDrive(
+        () -> -controller.getLeftY(),
+        () -> -controller.getLeftX(),
+        () -> -controller.getRightX()
+      )
+    );
     configureBindings();
+
+    autoChooser = new SendableChooser<Command>();
+
+    autoChooser.addOption("Do Nothing", new EmptyCommand());
+
+    SmartDashboard.putData("Field", field);
+    SmartDashboard.putData("autoChooser", autoChooser);
   }
 
   private void configureBindings() {
@@ -30,6 +44,7 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return Autos.exampleAuto(m_exampleSubsystem);
+    // return Autos.exampleAuto();
+    return autoChooser.getSelected();
   }
 }

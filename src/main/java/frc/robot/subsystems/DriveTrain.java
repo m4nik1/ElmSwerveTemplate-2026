@@ -41,16 +41,26 @@ public class DriveTrain extends SubsystemBase {
   public DriveTrain() {
 
     // Make the module array
-    elmCityModules = 
+    elmCityModules = new ElmCityModule[] {
+      new ElmCityModule(0, 8, 7, 0,Constants.angleOffsetMod0,InvertedValue.CounterClockwise_Positive, InvertedValue.Clockwise_Positive),
+      new ElmCityModule(1, 20, 19, 2, Constants.angleOffsetMod1, InvertedValue.Clockwise_Positive, InvertedValue.Clockwise_Positive),
+      new ElmCityModule(2, 10, 9, 1, Constants.angleOffsetMod2 ,InvertedValue.CounterClockwise_Positive, InvertedValue.Clockwise_Positive),
+      new ElmCityModule(3, 17, 18, 3, Constants.angleOffsetMod3, InvertedValue.Clockwise_Positive, InvertedValue.Clockwise_Positive),
+    };  
 
-    // Make the gyro (pigeon)
-    gyro = 
+    // Make the gyro
+    gyro = new Pigeon2(Constants.pigeonID);
 
     // Make odom variable
-    odom =
+    odom = new SwerveDrivePoseEstimator(Constants.swerveKinematics, 
+                                    getYaw(), 
+                                    getPositions(), 
+                                    new Pose2d(), 
+                                    VecBuilder.fill(0.01, 0.01, 0.01), // Try (0.005, 0.005, 0.005) to trust odom more
+                                    VecBuilder.fill(0.04, 0.04, 0.06)); // Try (0.05, .05, .08) to trust vision a little less
 
     // Call Reset gyro at startup
-
+    resetGyro();
 
     // AutoBuilder goes here for auto
 
@@ -58,17 +68,22 @@ public class DriveTrain extends SubsystemBase {
 
   // Return the angle of robot in Rotation2d
   public Rotation2d getYaw() {
+    return gyro.getRotation2d();
   }
 
   public Pose2d getPose() {
+    return odom.getEstimatedPosition();
   }
 
   public SwerveModulePosition[] getPositions() {
 
     // 1. Make the positions array variable
-    SwerveModulePosition[] positions = 
+    SwerveModulePosition[] positions = new SwerveModulePosition[4];
 
     // 2. Get each module position using for loop
+    for (ElmCityModule m : elmCityModules) {
+      positions[m.modNum] = m.getPosition();
+    }
 
     // Return the positions
     return positions;
@@ -76,40 +91,49 @@ public class DriveTrain extends SubsystemBase {
 
   // test command for velocity tuning
   public Command runVelocityCommand() {
+    return run(() -> elmCityModules[0].runVelocity(0.5));
   }
 
   // Resets gyro for robot
   public void resetGyro() {
+    gyro.reset();
   }
 
   public void drive(Translation2d translation, double rotation) {
     SwerveModuleState[] moduleStates;
 
     // 1. Convert to field relative speeds
-    ChassisSpeeds spds = 
+    ChassisSpeeds spds = ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation, getYaw());
 
     // 2. discretize the speeds to make it accurate using .discretize
+    spds = ChassisSpeeds.discretize(spds, .02);
 
     // 3. Now convert the speeds to each moduleState based on location
+    moduleStates = Constants.swerveKinematics.toSwerveModuleStates(spds);
 
     // 4. Desaturate wheel speeds to ensure each wheel is at Constants.maxSpeed
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.maxSpeed);
 
     // 5. set the desired state using for loop
+    for(ElmCityModule m : elmCityModules) {
+      m.setDesiredState(moduleStates[m.modNum], true);
+    }
   }
-
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return m_sysIdRoutineToApply.quasistatic(direction);
-}
 
   public Pose2d getRobotPose2d() {
+    return odom.getEstimatedPosition();
   }
 
+  // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+  //   return sysIdRoutine.quasistatic(direction);
+  // }
 
   public double getRobotAngle() {
+    return gyro.getYaw().getValueAsDouble();
   }
 
   // Tuning the angle PID
-  public void setAngle(double deg){
+  public void setAngle(double deg) {
 
   }
 
