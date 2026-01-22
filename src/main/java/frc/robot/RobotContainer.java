@@ -10,12 +10,15 @@ import frc.robot.subsystems.DriveTrain;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.subsystems.Vision;
 
 
 public class RobotContainer {
   // The robot's subsystems and commands are defined here
   public static DriveTrain driveTrain = new DriveTrain();
   public static Field2d field = new Field2d();
+  public static Vision vision = new Vision();
+
   public static SendableChooser<Command> autoChooser;
 
   private final CommandXboxController controller = new CommandXboxController(0);
