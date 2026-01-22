@@ -124,6 +124,10 @@ public class DriveTrain extends SubsystemBase {
     return odom.getEstimatedPosition();
   }
 
+  public void updatePoseEstimate(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {
+    odom.addVisionMeasurement(pose, timestamp, stdDevs);
+  }
+
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
   //   return sysIdRoutine.quasistatic(direction);
   // }
