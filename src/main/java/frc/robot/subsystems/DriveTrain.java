@@ -32,9 +32,9 @@ public class DriveTrain extends SubsystemBase {
     // Make the module array
     elmCityModules = new ElmCityModule[]{
       new ElmCityModule(0, 8, 7, 0, Constants.angleOffsetMod0, InvertedValue.CounterClockwise_Positive, InvertedValue.Clockwise_Positive),
-      new ElmCityModule(1, 20, 14,2,Constants.angleOffsetMod1,InvertedValue.Clockwise_Positive,InvertedValue.Clockwise_Positive ),
-      new ElmCityModule(2, 10, 9,3,Constants.angleOffsetMod2 ,InvertedValue.CounterClockwise_Positive,InvertedValue.Clockwise_Positive ),
-      new ElmCityModule(3, 17, 18, 4,Constants.angleOffsetMod3,InvertedValue.Clockwise_Positive,InvertedValue.Clockwise_Positive),
+      new ElmCityModule(1, 20, 19,2,Constants.angleOffsetMod1,InvertedValue.Clockwise_Positive,InvertedValue.Clockwise_Positive ),
+      new ElmCityModule(2, 10, 9,1,Constants.angleOffsetMod2 ,InvertedValue.CounterClockwise_Positive,InvertedValue.Clockwise_Positive ),
+      new ElmCityModule(3, 17, 18, 3,Constants.angleOffsetMod3,InvertedValue.Clockwise_Positive,InvertedValue.Clockwise_Positive),
     };
     // Make the gyro (pigeon)
     gyro = new Pigeon2(21);
@@ -120,7 +120,10 @@ public class DriveTrain extends SubsystemBase {
   }
   public Command setAngleCommand(){
     return run(()-> {
-      elmCityModules[0].goToAngle(90);
+      for(ElmCityModule mod: elmCityModules){
+        elmCityModules[mod.modNum].goToAngle(90);
+      }
+      //elmCityModules[0].goToAngle(90);
     });
   }
   // resets all the wheel angles

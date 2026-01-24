@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
+import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.DriveTrain;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
@@ -14,7 +15,11 @@ public class RobotContainer {
 
   public RobotContainer() {
     // Configure the trigger bindings
-    // drivetrain.setDefaultCommand(DriveCommands.teleopDrive(null, null, null))
+    driveTrain.setDefaultCommand(DriveCommands.teleopDrive(
+      ()->-controller.getLeftY(), 
+      ()->-controller.getLeftX() , 
+      ()->-controller.getRightX()
+    ));
 
     configureBindings();
   }

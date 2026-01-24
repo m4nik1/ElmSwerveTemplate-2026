@@ -44,9 +44,9 @@ public final class Constants {
   public static final double drivekA = .20; // 6.4 is the voltage for max speed per module
   
   public static final Rotation2d angleOffsetMod0 = Rotation2d.fromRotations(.0307);
-  public static final Rotation2d angleOffsetMod1 = Rotation2d.fromRotations(.4701);
+  public static final Rotation2d angleOffsetMod1 = Rotation2d.fromRotations(.4415);
   public static final Rotation2d angleOffsetMod2 = Rotation2d.fromRotations(.6385);
-  public static final Rotation2d angleOffsetMod3 = Rotation2d.fromRotations(.2001);
+  public static final Rotation2d angleOffsetMod3 = Rotation2d.fromRotations(.1980);
 
   public static final boolean driveStatorEnable = true;
   public static final double driveStatorCurrentLimit = 60;
@@ -76,7 +76,7 @@ public final class Constants {
   public static final double driveKd = 0;
 
   // Angle motor PID Values
-  public static final double angleP = 6.5;
+  public static final double angleP = 7.0;
   public static final double angleI = 0.0;
   public static final double angleD = 0.0;
   public static final double angleFF = 0.0;
