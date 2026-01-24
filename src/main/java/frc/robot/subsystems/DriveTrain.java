@@ -148,6 +148,7 @@ public class DriveTrain extends SubsystemBase {
   @Override
   public void periodic() {
     // Update pose with odometry using odom
+    odom.update(getYaw(), getPositions());
 
   }
 }
