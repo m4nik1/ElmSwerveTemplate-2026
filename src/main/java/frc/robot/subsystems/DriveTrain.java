@@ -18,12 +18,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 
 public class DriveTrain extends SubsystemBase {
@@ -120,17 +116,13 @@ public class DriveTrain extends SubsystemBase {
     }
   }
 
-  public Pose2d getRobotPose2d() {
-    return odom.getEstimatedPosition();
-  }
-
-  public void updatePoseEstimate(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {
-    odom.addVisionMeasurement(pose, timestamp, stdDevs);
-  }
-
   // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
   //   return sysIdRoutine.quasistatic(direction);
   // }
+
+  public void updatePoseEstimate(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
+    odom.addVisionMeasurement(robotPose, timestamp, stdDevs);
+  }
 
   public double getRobotAngle() {
     return gyro.getYaw().getValueAsDouble();
@@ -150,5 +142,7 @@ public class DriveTrain extends SubsystemBase {
     // Update pose with odometry using odom
     odom.update(getYaw(), getPositions());
 
+    Logger.recordOutput("Robot Pose", odom.getEstimatedPosition());
+    Logger.recordOutput("Robot Angle", getRobotAngle());
   }
 }
