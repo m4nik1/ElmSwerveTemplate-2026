@@ -25,9 +25,10 @@ public class DriveCommands {
             double getY = ySupplier.getAsDouble();
             double getRotation = rotationSupplier.getAsDouble();
 
-            double translateVal = translationLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getX, 01));
-            double strafeVal = strafeLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getY, 01));
-            double rotationVal = rotationLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getRotation, 01));
+            // Use a small deadband (0.05) so small joystick inputs still produce motion.
+            double translateVal = translationLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getX, 0.05));
+            double strafeVal = strafeLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getY, 0.05));
+            double rotationVal = rotationLimiter.calculate(speedMultipler * MathUtil.applyDeadband(getRotation, 0.05));
 
             Translation2d translation = new Translation2d(translateVal, strafeVal);
 

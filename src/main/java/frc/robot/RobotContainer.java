@@ -21,10 +21,17 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here
   public static DriveTrain driveTrain = new DriveTrain();
   public static Field2d field = new Field2d();
-  public static Vision vision = new Vision("elm_right_cam", new Transform3d(
+  public static Vision visionRight = new Vision("elm_right_cam", new Transform3d(
     Units.inchesToMeters(9.25), Units.inchesToMeters(13), 0.0, 
     new Rotation3d(0, Rotation2d.fromDegrees(-20).getRadians(), 0)
   ));
+
+  public static Vision visionLeft = new Vision("elm_left_cam", new Transform3d(
+    Units.inchesToMeters(9.25), Units.inchesToMeters(-13), 0.0, 
+    new Rotation3d(0, Rotation2d.fromDegrees(-20).getRadians(), 0)
+  ));
+
+
 
   public static SendableChooser<Command> autoChooser;
 
