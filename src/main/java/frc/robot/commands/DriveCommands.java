@@ -46,4 +46,10 @@ public class DriveCommands {
         }
         , RobotContainer.driveTrain);
     }
+
+    // Auto aim command
+    // We want the driver to move while the robot is angled towards the tags
+    public static Command autoAimMove() {
+
+    }
 }
