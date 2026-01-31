@@ -30,7 +30,7 @@ public class Vision extends SubsystemBase {
 
   public Vision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
-    aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
+    aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
 
     photonEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, robotToCamera);
   }
@@ -50,14 +50,15 @@ public class Vision extends SubsystemBase {
         visionEst = photonEstimator.estimateLowestAmbiguityPose(result);
       }
     }
+    if(visionEst != null) {
+      visionEst.ifPresent(
+          est -> {
+            curStdDevs = getEstimationStdDevs();
 
-    visionEst.ifPresent(
-        est -> {
-          curStdDevs = getEstimationStdDevs();
-
-          // Update estimator
-          RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
-        });
+            // Update estimator
+           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
+      });
+    }
   }
 
   /** Returns the current estimation standard deviations (x, y, theta). */
@@ -66,6 +67,6 @@ public class Vision extends SubsystemBase {
       return curStdDevs;
     }
     // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
-    return VecBuilder.fill(0.5, 0.5, 0.5);
+    return VecBuilder.fill(0.5, 0.5, 0);
   }
 }

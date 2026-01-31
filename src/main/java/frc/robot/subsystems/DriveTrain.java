@@ -121,7 +121,15 @@ public class DriveTrain extends SubsystemBase {
   // }
 
   public void updatePoseEstimate(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
-    odom.addVisionMeasurement(robotPose, timestamp, stdDevs);
+    if (visionPose == null) {
+      System.out.println("vision pose: null -- skipping vision update");
+      return;
+    }
+    System.out.println("vision pose: " + visionPose.toString());
+    // Use the visionPose parameter (robotPose field was never initialized)
+    odom.addVisionMeasurement(new Pose2d(visionPose.getX(), visionPose.getY(), getYaw()), timestamp, stdDevs);
+    // remember the last vision pose
+    // robotPose = visionPose;
   }
 
   public double getRobotAngle() {
