@@ -1,11 +1,13 @@
 package frc.robot.subsystems;
 
+
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.PositionDutyCycle;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -128,8 +130,12 @@ public class ElmCityModule extends SubsystemBase {
     angleMotor.setPosition(absoluteValue);
   }
 
+  public TalonFX getDriveMotor() {
+    return driveMotor;
+  }
+
   public void setAngleZero() {
-    angleMotor.setPosition(0);
+    goToAngle(0);
   }
 
   public SwerveModulePosition getPosition() {

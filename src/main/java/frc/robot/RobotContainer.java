@@ -7,19 +7,21 @@ package frc.robot;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.EmptyCommand;
 import frc.robot.subsystems.DriveTrain;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
+
+import com.ctre.phoenix6.SignalLogger;
+
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.subsystems.Vision;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 
 public class RobotContainer {
   // The robot's subsystems and commands are defined here
   public static DriveTrain driveTrain = new DriveTrain();
   public static Field2d field = new Field2d();
-  public static Vision vision = new Vision("arducam-558", new Transform3d(2.0, 1.0, 2.0, new Rotation3d(0, 0, 0)));
+  // public static Vision vision = new Vision("arducam-558", new Transform3d(2.0, 1.0, 2.0, new Rotation3d(0, 0, 0)));
 
   public static SendableChooser<Command> autoChooser;
 
@@ -27,24 +29,37 @@ public class RobotContainer {
 
   public RobotContainer() {
     // Configure the trigger bindings
-    driveTrain.setDefaultCommand(
-      DriveCommands.teleopDrive(
-        () -> -controller.getLeftY(),
-        () -> -controller.getLeftX(),
-        () -> -controller.getRightX()
-      )
-    );
+    // driveTrain.setDefaultCommand(
+    //   DriveCommands.teleopDrive(
+    //     () -> -controller.getLeftY(),
+    //     () -> -controller.getLeftX(),
+    //     () -> -controller.getRightX()
+    //   )
+    // );
+
     configureBindings();
 
     autoChooser = new SendableChooser<Command>();
 
     autoChooser.addOption("Do Nothing", new EmptyCommand());
-
-    SmartDashboard.putData("Field", field);
-    SmartDashboard.putData("autoChooser", autoChooser);
   }
 
   private void configureBindings() {
+    controller.leftBumper().onTrue(Commands.runOnce(SignalLogger::start));
+    controller.rightBumper().onTrue(Commands.runOnce(SignalLogger::stop));
+
+    /*
+    * Joystick Y = quasistatic forward
+    * Joystick A = quasistatic reverse
+    * Joystick B = dynamic forward
+    * Joystick X = dyanmic reverse
+    */
+    controller.y().whileTrue(driveTrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+    controller.a().whileTrue(driveTrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+    controller.b().whileTrue(driveTrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
+    controller.x().whileTrue(driveTrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+    controller.povDown().whileTrue(driveTrain.setAngleZero());
   }
 
   public Command getAutonomousCommand() {

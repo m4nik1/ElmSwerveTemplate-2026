@@ -2,11 +2,14 @@ package frc.robot.commands;
 
 import java.util.function.DoubleSupplier;
 
+import com.ctre.phoenix6.SignalLogger;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
 
@@ -35,5 +38,31 @@ public class DriveCommands {
 
         }
         , RobotContainer.driveTrain);
+    }
+
+    // SignalLogger control commands
+    public static Command startSignalLogger() {
+        return Commands.runOnce(() -> SignalLogger.start());
+    }
+
+    public static Command stopSignalLogger() {
+        return Commands.runOnce(() -> SignalLogger.stop());
+    }
+
+    // SysId test commands using CTRE SignalLogger
+    public static Command sysIdQuasistaticForward() {
+        return RobotContainer.driveTrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward);
+    }
+
+    public static Command sysIdQuasistaticReverse() {
+        return RobotContainer.driveTrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse);
+    }
+
+    public static Command sysIdDynamicForward() {
+        return RobotContainer.driveTrain.sysIdDynamic(SysIdRoutine.Direction.kForward);
+    }
+
+    public static Command sysIdDynamicReverse() {
+        return RobotContainer.driveTrain.sysIdDynamic(SysIdRoutine.Direction.kReverse);
     }
 }

@@ -1,8 +1,12 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Volts;
+
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -20,6 +24,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 
 public class DriveTrain extends SubsystemBase {
@@ -32,7 +37,7 @@ public class DriveTrain extends SubsystemBase {
 
   // Make the SwerveDrive Estimator
   SwerveDrivePoseEstimator odom;
-
+  final SysIdRoutine m_sysIdRoutine;
 
   public DriveTrain() {
 
@@ -42,7 +47,7 @@ public class DriveTrain extends SubsystemBase {
       new ElmCityModule(1, 20, 19, 2, Constants.angleOffsetMod1, InvertedValue.Clockwise_Positive, InvertedValue.Clockwise_Positive),
       new ElmCityModule(2, 10, 9, 1, Constants.angleOffsetMod2 ,InvertedValue.CounterClockwise_Positive, InvertedValue.Clockwise_Positive),
       new ElmCityModule(3, 17, 18, 3, Constants.angleOffsetMod3, InvertedValue.Clockwise_Positive, InvertedValue.Clockwise_Positive),
-    };  
+    };
 
     // Make the gyro
     gyro = new Pigeon2(Constants.pigeonID);
@@ -57,6 +62,33 @@ public class DriveTrain extends SubsystemBase {
 
     // Call Reset gyro at startup
     resetGyro();
+
+    final VoltageOut m_sysIdControl = new VoltageOut(0);
+
+    m_sysIdRoutine = new SysIdRoutine(
+        new SysIdRoutine.Config(
+            null,         // Default ramp (1V/s)
+            Volts.of(4),  // Max step voltage
+            null,         // Default timeout
+            (state) -> SignalLogger.writeString("state", state.toString())
+        ),
+        new SysIdRoutine.Mechanism(
+            (volts) -> {
+                // 2. Apply voltage to ALL 4 drive motors
+                // Also: Ensure your steer motors are pointing the wheels at 0 degrees!
+                elmCityModules[0].getDriveMotor().setControl(m_sysIdControl.withOutput(volts));
+                elmCityModules[1].getDriveMotor().setControl(m_sysIdControl.withOutput(volts));
+                elmCityModules[2].getDriveMotor().setControl(m_sysIdControl.withOutput(volts));
+                elmCityModules[3].getDriveMotor().setControl(m_sysIdControl.withOutput(volts));
+                
+                // Explicitly tell steer motors to stay at 0 during the test
+                // (Assumes you have a method to set steer position)
+                this.setAnglesZero(); 
+            },
+            null, // SignalLogger automatically records the motor data
+            this
+        )
+    );
 
     // AutoBuilder goes here for auto
 
@@ -116,9 +148,27 @@ public class DriveTrain extends SubsystemBase {
     }
   }
 
-  // public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-  //   return sysIdRoutine.quasistatic(direction);
-  // }
+  public void setAnglesZero() {
+    for(ElmCityModule m : elmCityModules) {
+      m.setAngleZero();
+    }
+  }
+
+  public Command setAngleZero() {
+    return run(() -> {
+      for(ElmCityModule m : elmCityModules) {
+        m.setAngleZero();
+      }
+    });
+  }
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+  }
+ 
+ public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
+  }
 
   public void updatePoseEstimate(Pose2d visionPose, double timestamp, Matrix<N3, N1> stdDevs) {
     odom.addVisionMeasurement(robotPose, timestamp, stdDevs);
