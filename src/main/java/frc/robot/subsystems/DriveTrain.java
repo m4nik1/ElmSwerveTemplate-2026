@@ -52,8 +52,8 @@ public class DriveTrain extends SubsystemBase {
                                     getYaw(), 
                                     getPositions(), 
                                     new Pose2d(), 
-                                    VecBuilder.fill(0.01, 0.01, 0.01), // Try (0.005, 0.005, 0.005) to trust odom more
-                                    VecBuilder.fill(0.04, 0.04, 0.06)); // Try (0.05, .05, .08) to trust vision a little less
+                                    VecBuilder.fill(0.01, 0.01, 0.001), // Right now we trust odometry a lot
+                                    VecBuilder.fill(0.04, 0.04, Double.MAX_VALUE)); // Try (0.05, .05, .08) to trust vision a little less
 
     // Call Reset gyro at startup
     resetGyro();

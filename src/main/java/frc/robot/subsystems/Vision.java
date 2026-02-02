@@ -46,27 +46,26 @@ public class Vision extends SubsystemBase {
     Optional<EstimatedRobotPose> visionEst = Optional.empty();
     for (var result : camera.getAllUnreadResults()) {
       visionEst = photonEstimator.estimateCoprocMultiTagPose(result);
-      if(visionEst.isEmpty()) {
+      if(visionEst.isEmpty() && !result.getTargets().isEmpty()) {
         visionEst = photonEstimator.estimateLowestAmbiguityPose(result);
       }
     }
-    if(visionEst != null) {
-      visionEst.ifPresent(
-          est -> {
-            curStdDevs = getEstimationStdDevs();
+    visionEst.ifPresent(
+        est -> {
+          curStdDevs = getEstimationStdDevs();
 
-            // Update estimator
-           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
-      });
-    }
+          // Update estimator
+          RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
+    });
   }
 
   /** Returns the current estimation standard deviations (x, y, theta). */
   private Matrix<N3, N1> getEstimationStdDevs() {
+    // TODO: Add distance based standard deviations
     if (curStdDevs != null) {
       return curStdDevs;
     }
     // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
-    return VecBuilder.fill(0.5, 0.5, 0);
+    return VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE);
   }
 }
