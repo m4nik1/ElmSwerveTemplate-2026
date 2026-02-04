@@ -72,16 +72,16 @@ public class DriveTrain extends SubsystemBase {
           new PIDConstants(0, 0, 0), // XY PID
           new PIDConstants(0, 0, 0)  // Rotational PID
         ), 
-        autoConfig, 
-        () -> {
-          var alliance = DriverStation.getAlliance();
-          if(alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-          }
-          return false;
-        }, 
-        this
-      );
+      autoConfig, 
+      () -> {
+        var alliance = DriverStation.getAlliance();
+        if(alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
+        }
+        return false;
+      }, 
+      this
+    );
   }
 
   // Return the angle of robot in Rotation2d
