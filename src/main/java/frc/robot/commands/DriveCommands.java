@@ -49,7 +49,7 @@ public class DriveCommands {
 
     // Auto aim command
     // We want the driver to move while the robot is angled towards the tags
-    public static Command autoAimMove() {
+    // public static Command autoAimMove() {
 
-    }
+    // }
 }

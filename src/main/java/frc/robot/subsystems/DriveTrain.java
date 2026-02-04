@@ -3,6 +3,11 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -11,6 +16,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -25,6 +31,9 @@ public class DriveTrain extends SubsystemBase {
 
   // Make the SwerveDrive Estimator
   SwerveDrivePoseEstimator odom;
+
+  // Path planner config
+  RobotConfig autoConfig;
 
 
   public DriveTrain() {
@@ -43,13 +52,36 @@ public class DriveTrain extends SubsystemBase {
     // Make odom variable:
     odom = new SwerveDrivePoseEstimator(Constants.swerveKinematics, getYaw(), getPositions(), new Pose2d());
 
+    try {
+      autoConfig = RobotConfig.fromGUISettings();
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
+
     // Call Reset gyro at startup
-     gyro.reset();
+    gyro.reset();
 
 
     // AutoBuilder goes here for auto
-    
-
+    AutoBuilder.configure(
+      this::getPose, 
+      this::resetPose, 
+      this::getRobotSpds, 
+      (speeds, feedforwards) -> driveRobotRelative(speeds), 
+      new PPHolonomicDriveController(
+          new PIDConstants(0, 0, 0), // XY PID
+          new PIDConstants(0, 0, 0)  // Rotational PID
+        ), 
+        autoConfig, 
+        () -> {
+          var alliance = DriverStation.getAlliance();
+          if(alliance.isPresent()) {
+            return alliance.get() == DriverStation.Alliance.Red;
+          }
+          return false;
+        }, 
+        this
+      );
   }
 
   // Return the angle of robot in Rotation2d
@@ -59,6 +91,31 @@ public class DriveTrain extends SubsystemBase {
 
   public Pose2d getPose() {
     return odom.getEstimatedPosition();
+  }
+
+  public ChassisSpeeds getRobotSpds() {
+    return Constants.swerveKinematics.toChassisSpeeds(
+      elmCityModules[0].getState(),
+      elmCityModules[1].getState(),
+      elmCityModules[2].getState(),
+      elmCityModules[3].getState()
+    );
+  }
+
+  public void driveRobotRelative(ChassisSpeeds spds) {
+    SwerveModuleState states[];
+    ChassisSpeeds spds_discrete = ChassisSpeeds.discretize(spds, .02);
+    states = Constants.swerveKinematics.toSwerveModuleStates(spds_discrete);
+    SwerveDriveKinematics.desaturateWheelSpeeds(states, Constants.maxSpeed);
+    
+
+    for(ElmCityModule m : elmCityModules) {
+      m.setDesiredState(states[m.modNum], false);
+    }
+  }
+
+  public void resetPose(Pose2d pose) {
+    odom.resetPosition(getYaw(), getPositions(), pose);
   }
 
   public SwerveModulePosition[] getPositions() {
