@@ -18,6 +18,7 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 public class Vision extends SubsystemBase {
   /** Creates a new Vision. */
@@ -46,13 +47,13 @@ public class Vision extends SubsystemBase {
     Optional<EstimatedRobotPose> visionEst = Optional.empty();
     for (var result : camera.getAllUnreadResults()) {
       visionEst = photonEstimator.estimateCoprocMultiTagPose(result);
+      curStdDevs = getEstimationStdDevs(result);
       if(visionEst.isEmpty() && !result.getTargets().isEmpty()) {
         visionEst = photonEstimator.estimateLowestAmbiguityPose(result);
       }
     }
     visionEst.ifPresent(
         est -> {
-          curStdDevs = getEstimationStdDevs();
 
           // Update estimator
           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
@@ -60,11 +61,20 @@ public class Vision extends SubsystemBase {
   }
 
   /** Returns the current estimation standard deviations (x, y, theta). */
-  private Matrix<N3, N1> getEstimationStdDevs() {
+  private Matrix<N3, N1> getEstimationStdDevs(PhotonPipelineResult result) {
     // TODO: Add distance based standard deviations
     if (curStdDevs != null) {
       return curStdDevs;
     }
+
+    var targets = result.getTargets();
+
+    double cameraToClosestTarget = targets.stream().mapToDouble(trackedTarget -> estimate.relativeTo())
+    
+
+
+
+
     // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
     return VecBuilder.fill(0.5, 0.5, Double.MAX_VALUE);
   }
