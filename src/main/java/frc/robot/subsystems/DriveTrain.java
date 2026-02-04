@@ -48,6 +48,7 @@ public class DriveTrain extends SubsystemBase {
 
 
     // AutoBuilder goes here for auto
+    
 
   }
 
@@ -123,7 +124,6 @@ public class DriveTrain extends SubsystemBase {
       for(ElmCityModule mod: elmCityModules){
         elmCityModules[mod.modNum].goToAngle(90);
       }
-      //elmCityModules[0].goToAngle(90);
     });
   }
   // resets all the wheel angles
