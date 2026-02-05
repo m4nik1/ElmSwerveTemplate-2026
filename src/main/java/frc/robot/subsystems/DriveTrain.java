@@ -133,14 +133,6 @@ public class DriveTrain extends SubsystemBase {
     return positions;
   }
 
-  // // test command for velocity tuning
-  // public Command runVelocityCommand() {
-  // }
-
-  // Resets gyro for robot
-  public void resetGyro() {
-  }
-
   public void drive(Translation2d translation, double rotation) {
     SwerveModuleState[] moduleStates;
 
@@ -182,9 +174,6 @@ public class DriveTrain extends SubsystemBase {
         elmCityModules[mod.modNum].goToAngle(90);
       }
     });
-  }
-  // resets all the wheel angles
-  public void zeroAngles() {
   }
 
   @Override
