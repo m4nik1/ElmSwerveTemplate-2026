@@ -8,6 +8,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,6 +17,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -149,14 +152,14 @@ public class DriveTrain extends SubsystemBase {
     for(ElmCityModule mod:elmCityModules){
       mod.setDesiredState(moduleStates[mod.modNum],true);
     }
-  } 
-
-//   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-//     return m_sysIdRoutineToApply.quasistatic(direction);
-// }
+  }
 
   public Pose2d getRobotPose2d() {
     return odom.getEstimatedPosition();
+  }
+
+  public void updatePoseEstimate(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {
+    odom.addVisionMeasurement(pose, timestamp, stdDevs);
   }
 
 

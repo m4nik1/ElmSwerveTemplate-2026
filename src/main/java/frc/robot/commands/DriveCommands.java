@@ -1,10 +1,15 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Rotation;
+
+import java.nio.channels.Pipe;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
@@ -49,7 +54,31 @@ public class DriveCommands {
 
     // Auto aim command
     // We want the driver to move while the robot is angled towards the tags
-    // public static Command autoAimMove() {
+    public static Command autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+        return Commands.run(() -> {
+            PIDController rotationController = new PIDController(0, 0, 0);
+            
+            rotationController.enableContinuousInput(-Math.PI, Math.PI);
 
-    // }
+            // Call the vision's getYawAlign
+            double angle = 
+
+            double getX = xSupplier.getAsDouble();
+            double getY = ySupplier.getAsDouble();
+
+            // Add translation and strafe values
+            double translate = .8*getX;
+            double strafe = .8*getY;
+
+
+            // Make translation object
+            Translation2d translation = 
+
+
+            // Send the translation values to drive
+            
+
+
+        }, RobotContainer.driveTrain);
+    }
 }
