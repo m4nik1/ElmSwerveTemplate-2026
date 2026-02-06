@@ -62,7 +62,7 @@ public class DriveCommands {
     // We want the driver to move while the robot is angled towards the tags
     public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
         // return Commands.run(() -> {
-            PIDController rotationController = new PIDController(.2, 0, 0);
+            PIDController rotationController = new PIDController(4, 0, 0);
             
             rotationController.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -85,7 +85,7 @@ public class DriveCommands {
 
 
             // Send the translation values to drive
-            RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),rotation*5);
+            RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),-rotation*5);
             
 
 
