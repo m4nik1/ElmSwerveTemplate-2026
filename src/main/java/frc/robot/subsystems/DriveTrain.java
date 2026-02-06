@@ -1,6 +1,8 @@
 
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -182,6 +184,7 @@ public class DriveTrain extends SubsystemBase {
   @Override
   public void periodic() {
     // Update pose with odometry using odom
+    Logger.recordOutput("robotAngle", getYaw().getDegrees());
 
   }
 }

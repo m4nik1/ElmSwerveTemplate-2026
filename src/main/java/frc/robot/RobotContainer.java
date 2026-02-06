@@ -27,7 +27,7 @@ public class RobotContainer {
     new Rotation3d(0, Rotation2d.fromDegrees(-20).getRadians(), 0)
   ));
 
-  public CommandXboxController controller= new CommandXboxController(0);
+  public static CommandXboxController controller= new CommandXboxController(0);
 
   public RobotContainer() {
     // Configure the trigger bindings
@@ -41,7 +41,11 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    controller.a().onTrue(driveTrain.setAngleCommand());
+    // controller.a().onTrue(DriveCommands.autoAimMove(()->-controller.getLeftY(),() ->-controller.getRightX()));
+  }
+
+  public static boolean getA(){
+    return controller.a().getAsBoolean();
   }
 
   // public Command getAutonomousCommand() {
