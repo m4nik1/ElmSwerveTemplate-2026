@@ -52,7 +52,9 @@ public class Vision extends SubsystemBase {
       var result = results.get(results.size() - 1);
 
       for(var targets : result.getTargets()) {
-        targetYaw = targets.getYaw();
+        if(targets.getFiducialId() == 4) { 
+          targetYaw = targets.getYaw();
+        }
       }
 
       return targetYaw;

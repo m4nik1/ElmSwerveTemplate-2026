@@ -16,6 +16,13 @@ import frc.robot.RobotContainer;
 public class DriveCommands {
 
     static PIDController rotationController = new PIDController(.5, 0, 0);
+    static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
+    static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
+    static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
+
+    static {
+        rotationController.enableContinuousInput(-Math.PI, Math.PI);
+    }
 
     // Drive only in teleop
     public static Command teleopDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier rotationSupplier) {
@@ -60,28 +67,25 @@ public class DriveCommands {
     // Auto aim command
     // We want the driver to move while the robot is angled towards the tags
     public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
-        rotationController.enableContinuousInput(-Math.PI, Math.PI);
-
-        // Slew rate limit
-        SlewRateLimiter translationLimiter = new SlewRateLimiter(3);
-        SlewRateLimiter strafeLimiter = new SlewRateLimiter(3);
-        SlewRateLimiter rotationLimiter = new SlewRateLimiter(3);
-
         // Call the vision's getYawAlign
-        double angle = RobotContainer.visionLeft.getYawAlign()-RobotContainer.driveTrain.getRobotAngle();
+        double targetYaw = RobotContainer.visionLeft.getYawAlign();
+        double robotYaw = RobotContainer.driveTrain.getRobotAngle();
 
         double getX = xSupplier.getAsDouble();
         double getY = ySupplier.getAsDouble();
 
         // Add translation and strafe values
-        double translate = translationLimiter.calculate(.8*MathUtil.applyDeadband(getX, .01));
-        double strafe = strafeLimiter.calculate(.8*MathUtil.applyDeadband(getY, .01));
-        double rotation = rotationController.calculate(angle, 0);
+        double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
+        double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
+        double rotation = rotationController.calculate(robotYaw, targetYaw);
+        double rotationOutput = autoAimRotationLimiter.calculate(
+            MathUtil.applyDeadband(MathUtil.clamp(rotation, -1.0, 1.0), 0.02)
+        );
 
         // Make translation object
         Translation2d translation = new Translation2d(translate, strafe);
 
         // Send the translation values to drive
-        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),rotation*5);
+        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotationOutput * Constants.maxAngularSpd);
     }
 }
