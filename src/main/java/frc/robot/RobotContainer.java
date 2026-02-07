@@ -42,6 +42,7 @@ public class RobotContainer {
 
   private void configureBindings() {
     // controller.a().onTrue(DriveCommands.autoAimMove(()->-controller.getLeftY(),() ->-controller.getRightX()));
+    controller.leftBumper().onTrue(driveTrain.zeroGyro());
   }
 
   public static boolean getA(){

@@ -6,6 +6,7 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -15,7 +16,7 @@ import frc.robot.RobotContainer;
 /** Add your docs here. */
 public class DriveCommands {
 
-    static PIDController rotationController = new PIDController(.5, 0, 0);
+    static PIDController rotationController = new PIDController(4, 0, 0);
     static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
@@ -43,24 +44,28 @@ public class DriveCommands {
             double getY = ySupplier.getAsDouble();
             double getRotation = rotationSupplier.getAsDouble();
 
-            Logger.recordOutput("vision angle diff", RobotContainer.visionLeft.getYawAlign()-RobotContainer.driveTrain.getRobotAngle());
+            // Logger.recordOutput("vision angle diff", RobotContainer.visionLeft.getYawAlign()-RobotContainer.driveTrain.getRobotAngle());
 
             // Calculate and apply deadband the values of each
             double translateVal = translationLimiter.calculate(speedMultipler*MathUtil.applyDeadband(getX,.01));
             double strafeVal = strafeLimiter.calculate(speedMultipler*MathUtil.applyDeadband(getY,.01));
-            double rotationVal = rotationLimiter.calculate(speedMultipler*MathUtil.applyDeadband(getRotation,.01));
+            double rotationVal = rotationLimiter.calculate(speedMultipler*MathUtil.applyDeadband(getRotation, .06));
 
             // Add the translate and strafe values to translate2d object
             Translation2d translation = new Translation2d(translateVal, strafeVal);
 
             // If A is being held down, auto aim while moving, else normal drive 
             if(RobotContainer.getA()){
-                autoAimMove(xSupplier, ySupplier);
+                
+                Rotation2d targetYaw = RobotContainer.visionRight.getYawAlign();
+                // autoAimMove(xSupplier, ySupplier);
+                rotationVal = 4*targetYaw.getRadians()*-1;
             }
-            else {
-                // Send the translation and rotation values to drive object
-                RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),rotationVal*Constants.maxAngularSpd);
-            }
+            Logger.recordOutput("Rotation output", rotationVal*Constants.maxAngularSpd);
+            Logger.recordOutput("Aim Command", RobotContainer.getA());
+
+            // Send the translation and rotation values to drive object
+            RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),rotationVal*Constants.maxAngularSpd);
         }, RobotContainer.driveTrain);
     }
 
@@ -68,8 +73,8 @@ public class DriveCommands {
     // We want the driver to move while the robot is angled towards the tags
     public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
         // Call the vision's getYawAlign
-        double targetYaw = RobotContainer.visionLeft.getYawAlign();
-        double robotYaw = RobotContainer.driveTrain.getRobotAngle();
+        Rotation2d targetYaw = RobotContainer.visionLeft.getYawAlign();
+        double robotYaw = RobotContainer.driveTrain.getRobotPose2d().getRotation().getRadians();
 
         double getX = xSupplier.getAsDouble();
         double getY = ySupplier.getAsDouble();
@@ -77,15 +82,13 @@ public class DriveCommands {
         // Add translation and strafe values
         double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
         double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
-        double rotation = rotationController.calculate(robotYaw, targetYaw);
-        double rotationOutput = autoAimRotationLimiter.calculate(
-            MathUtil.applyDeadband(MathUtil.clamp(rotation, -1.0, 1.0), 0.02)
-        );
-
+        double rotation =0;
         // Make translation object
         Translation2d translation = new Translation2d(translate, strafe);
 
+        
+
         // Send the translation values to drive
-        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotationOutput * Constants.maxAngularSpd);
+        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), -rotation * Constants.maxAngularSpd);
     }
 }

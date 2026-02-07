@@ -173,6 +173,13 @@ public class DriveTrain extends SubsystemBase {
   public void setAngle(double deg) {
      elmCityModules[0].goToAngle(deg);
   }
+
+  public Command zeroGyro() {
+    return run(() -> {
+      gyro.setYaw(0);
+    });
+  }
+
   public Command setAngleCommand(){
     return run(()-> {
       for(ElmCityModule mod: elmCityModules){

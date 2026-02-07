@@ -11,6 +11,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -44,7 +45,7 @@ public class Vision extends SubsystemBase {
 
   // Function gets the angle from the vision targets
   // From the hub
-  public double getYawAlign() {
+  public Rotation2d getYawAlign() {
     var results = camera.getAllUnreadResults();
     double targetYaw = 0.0;
 
@@ -57,10 +58,10 @@ public class Vision extends SubsystemBase {
         }
       }
 
-      return targetYaw;
+      return Rotation2d.fromDegrees(targetYaw);
     }
 
-    return targetYaw;
+    return Rotation2d.fromDegrees(targetYaw);
   }
 
   @Override
