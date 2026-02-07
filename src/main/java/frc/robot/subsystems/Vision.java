@@ -45,23 +45,23 @@ public class Vision extends SubsystemBase {
 
   // Function gets the angle from the vision targets
   // From the hub
-  public Rotation2d getYawAlign() {
+  public double getYawAlign() {
     var results = camera.getAllUnreadResults();
     double targetYaw = 0.0;
 
     if(!results.isEmpty()) {
       var result = results.get(results.size() - 1);
-
+      System.out.println("Found target!");
       for(var targets : result.getTargets()) {
         if(targets.getFiducialId() == 4) { 
           targetYaw = targets.getYaw();
         }
       }
 
-      return Rotation2d.fromDegrees(targetYaw);
+      return targetYaw;
     }
 
-    return Rotation2d.fromDegrees(targetYaw);
+    return targetYaw;
   }
 
   @Override
@@ -69,7 +69,7 @@ public class Vision extends SubsystemBase {
     // This method will be called once per scheduler run
     Optional<EstimatedRobotPose> visionEst = Optional.empty();
     
-    Logger.recordOutput("Vision Yaw", getYawAlign());
+    // Logger.recordOutput("Vision Yaw", getYawAlign());
 
     for (var result : camera.getAllUnreadResults()) {
       visionEst = photonEstimator.estimateCoprocMultiTagPose(result);

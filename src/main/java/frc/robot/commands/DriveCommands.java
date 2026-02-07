@@ -16,13 +16,13 @@ import frc.robot.RobotContainer;
 /** Add your docs here. */
 public class DriveCommands {
 
-    static PIDController rotationController = new PIDController(4, 0, 0);
+    static PIDController rotationController = new PIDController(6, 0, 0);
     static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
 
     static {
-        rotationController.enableContinuousInput(-Math.PI, Math.PI);
+        rotationController.enableContinuousInput(-180, 180);
     }
 
     // Drive only in teleop
@@ -57,11 +57,12 @@ public class DriveCommands {
             // If A is being held down, auto aim while moving, else normal drive 
             if(RobotContainer.getA()){
                 
-                Rotation2d targetYaw = RobotContainer.visionRight.getYawAlign();
+                double targetYaw = RobotContainer.visionRight.getYawAlign();
                 // autoAimMove(xSupplier, ySupplier);
-                rotationVal = 4*targetYaw.getRadians()*-1;
+                rotationVal = rotationController.calculate(-targetYaw);
+                System.out.println("yaw from camera: " + targetYaw);
             }
-            Logger.recordOutput("Rotation output", rotationVal*Constants.maxAngularSpd);
+            Logger.recordOutput("Rotation output", -rotationVal*Constants.maxAngularSpd);
             Logger.recordOutput("Aim Command", RobotContainer.getA());
 
             // Send the translation and rotation values to drive object
@@ -71,24 +72,24 @@ public class DriveCommands {
 
     // Auto aim command
     // We want the driver to move while the robot is angled towards the tags
-    public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
-        // Call the vision's getYawAlign
-        Rotation2d targetYaw = RobotContainer.visionLeft.getYawAlign();
-        double robotYaw = RobotContainer.driveTrain.getRobotPose2d().getRotation().getRadians();
+    // public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+    //     // Call the vision's getYawAlign
+    //     Rotation2d targetYaw = RobotContainer.visionLeft.getYawAlign();
+    //     double robotYaw = RobotContainer.driveTrain.getRobotPose2d().getRotation().getRadians();
 
-        double getX = xSupplier.getAsDouble();
-        double getY = ySupplier.getAsDouble();
+    //     double getX = xSupplier.getAsDouble();
+    //     double getY = ySupplier.getAsDouble();
 
-        // Add translation and strafe values
-        double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
-        double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
-        double rotation =0;
-        // Make translation object
-        Translation2d translation = new Translation2d(translate, strafe);
+    //     // Add translation and strafe values
+    //     double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
+    //     double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
+    //     double rotation =0;
+    //     // Make translation object
+    //     Translation2d translation = new Translation2d(translate, strafe);
 
         
 
-        // Send the translation values to drive
-        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), -rotation * Constants.maxAngularSpd);
-    }
+    //     // Send the translation values to drive
+    //     RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), -rotation * Constants.maxAngularSpd);
+    // }
 }
