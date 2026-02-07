@@ -1,15 +1,12 @@
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.Rotation;
-
-import java.nio.channels.Pipe;
 import java.util.function.DoubleSupplier;
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
@@ -17,6 +14,8 @@ import frc.robot.RobotContainer;
 
 /** Add your docs here. */
 public class DriveCommands {
+
+    static PIDController rotationController = new PIDController(.5, 0, 0);
 
     // Drive only in teleop
     public static Command teleopDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier rotationSupplier) {
@@ -37,7 +36,7 @@ public class DriveCommands {
             double getY = ySupplier.getAsDouble();
             double getRotation = rotationSupplier.getAsDouble();
 
-
+            Logger.recordOutput("vision angle diff", RobotContainer.visionLeft.getYawAlign()-RobotContainer.driveTrain.getRobotAngle());
 
             // Calculate and apply deadband the values of each
             double translateVal = translationLimiter.calculate(speedMultipler*MathUtil.applyDeadband(getX,.01));
@@ -47,7 +46,7 @@ public class DriveCommands {
             // Add the translate and strafe values to translate2d object
             Translation2d translation = new Translation2d(translateVal, strafeVal);
 
-
+            // If A is being held down, auto aim while moving, else normal drive 
             if(RobotContainer.getA()){
                 autoAimMove(xSupplier, ySupplier);
             }
@@ -61,34 +60,28 @@ public class DriveCommands {
     // Auto aim command
     // We want the driver to move while the robot is angled towards the tags
     public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
-        // return Commands.run(() -> {
-            PIDController rotationController = new PIDController(4, 0, 0);
-            
-            rotationController.enableContinuousInput(-Math.PI, Math.PI);
+        rotationController.enableContinuousInput(-Math.PI, Math.PI);
 
-            // Call the vision's getYawAlign
-            double angle = RobotContainer.visionLeft.getYawAlign();
+        // Slew rate limit
+        SlewRateLimiter translationLimiter = new SlewRateLimiter(3);
+        SlewRateLimiter strafeLimiter = new SlewRateLimiter(3);
+        SlewRateLimiter rotationLimiter = new SlewRateLimiter(3);
 
-            double getX = xSupplier.getAsDouble();
-            double getY = ySupplier.getAsDouble();
+        // Call the vision's getYawAlign
+        double angle = RobotContainer.visionLeft.getYawAlign()-RobotContainer.driveTrain.getRobotAngle();
 
-            // Add translation and strafe values
-            double translate = .8*getX;
-            double strafe = .8*getY;
-            double rotation = rotationController.calculate(angle, 0);
+        double getX = xSupplier.getAsDouble();
+        double getY = ySupplier.getAsDouble();
 
+        // Add translation and strafe values
+        double translate = translationLimiter.calculate(.8*MathUtil.applyDeadband(getX, .01));
+        double strafe = strafeLimiter.calculate(.8*MathUtil.applyDeadband(getY, .01));
+        double rotation = rotationController.calculate(angle, 0);
 
+        // Make translation object
+        Translation2d translation = new Translation2d(translate, strafe);
 
-            // Make translation object
-            Translation2d translation = new Translation2d(translate, strafe);
-        
-
-
-            // Send the translation values to drive
-            RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),-rotation*5);
-            
-
-
-        // }, RobotContainer.driveTrain);
+        // Send the translation values to drive
+        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),rotation*5);
     }
 }

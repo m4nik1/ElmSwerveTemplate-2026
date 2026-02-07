@@ -15,6 +15,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import java.util.Optional;
+
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -55,7 +57,7 @@ public class Vision extends SubsystemBase {
 
       return targetYaw;
     }
-    
+
     return targetYaw;
   }
 
@@ -63,6 +65,9 @@ public class Vision extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     Optional<EstimatedRobotPose> visionEst = Optional.empty();
+    
+    Logger.recordOutput("Vision Yaw", getYawAlign());
+
     for (var result : camera.getAllUnreadResults()) {
       visionEst = photonEstimator.estimateCoprocMultiTagPose(result);
       if(visionEst.isEmpty()) {
@@ -84,6 +89,7 @@ public class Vision extends SubsystemBase {
     if (curStdDevs != null) {
       return curStdDevs;
     }
+    
     // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
     return VecBuilder.fill(0.5, 0.5, 0.5);
   }
