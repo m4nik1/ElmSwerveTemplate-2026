@@ -16,7 +16,7 @@ import frc.robot.RobotContainer;
 /** Add your docs here. */
 public class DriveCommands {
 
-    static PIDController rotationController = new PIDController(6, 0, 0);
+    static PIDController rotationController = new PIDController(35, 0, 0);
     static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
@@ -53,14 +53,24 @@ public class DriveCommands {
 
             // Add the translate and strafe values to translate2d object
             Translation2d translation = new Translation2d(translateVal, strafeVal);
+            double targetYaw = 0.0;
 
             // If A is being held down, auto aim while moving, else normal drive 
             if(RobotContainer.getA()){
                 
-                double targetYaw = RobotContainer.visionRight.getYawAlign();
-                // autoAimMove(xSupplier, ySupplier);
-                rotationVal = rotationController.calculate(-targetYaw);
-                System.out.println("yaw from camera: " + targetYaw);
+                var results = RobotContainer.visionLeft.getCamera().getAllUnreadResults();
+                if(!results.isEmpty()) {
+                    var result = results.get(results.size() - 1);
+
+                    for(var targets : result.getTargets()) {
+                        targetYaw = targets.getYaw();
+                         
+                    }
+                    
+                    Logger.recordOutput("Get camera yaw", targetYaw);  
+                    rotationController.setTolerance(1.5);
+                    rotationVal = rotationController.calculate(targetYaw, 0);
+                }
             }
             Logger.recordOutput("Rotation output", -rotationVal*Constants.maxAngularSpd);
             Logger.recordOutput("Aim Command", RobotContainer.getA());

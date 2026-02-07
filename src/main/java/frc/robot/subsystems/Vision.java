@@ -64,12 +64,16 @@ public class Vision extends SubsystemBase {
     return targetYaw;
   }
 
+  public PhotonCamera getCamera() {
+    return camera;
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     Optional<EstimatedRobotPose> visionEst = Optional.empty();
     
-    // Logger.recordOutput("Vision Yaw", getYawAlign());
+     Logger.recordOutput("Vision Yaw", getYawAlign());
 
     for (var result : camera.getAllUnreadResults()) {
       visionEst = photonEstimator.estimateCoprocMultiTagPose(result);
