@@ -31,6 +31,8 @@ public class Vision extends SubsystemBase {
   
   private AprilTagFieldLayout aprilTagFieldLayout;
 
+  private double lastSeenYawAlign = 0.0;
+
   public Vision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
     aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
@@ -46,22 +48,7 @@ public class Vision extends SubsystemBase {
   // Function gets the angle from the vision targets
   // From the hub
   public double getYawAlign() {
-    var results = camera.getAllUnreadResults();
-    double targetYaw = 0.0;
-
-    if(!results.isEmpty()) {
-      var result = results.get(results.size() - 1);
-      System.out.println("Found target!");
-      for(var targets : result.getTargets()) {
-        if(targets.getFiducialId() == 4) { 
-          targetYaw = targets.getYaw();
-        }
-      }
-
-      return targetYaw;
-    }
-
-    return targetYaw;
+    return lastSeenYawAlign
   }
 
   public PhotonCamera getCamera() {
@@ -80,6 +67,12 @@ public class Vision extends SubsystemBase {
       if(visionEst.isEmpty()) {
         visionEst = photonEstimator.estimateLowestAmbiguityPose(result);
       }
+      
+       if(!result.getTargets().isEmpty()) {
+        for(var target: result.getTargets()) {
+          lastSeenYawAlign = target.getYaw();
+        }
+       }
     }
 
     visionEst.ifPresent(

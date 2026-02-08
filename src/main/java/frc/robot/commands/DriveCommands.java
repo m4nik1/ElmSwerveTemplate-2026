@@ -16,7 +16,7 @@ import frc.robot.RobotContainer;
 /** Add your docs here. */
 public class DriveCommands {
 
-    static PIDController rotationController = new PIDController(15, 0, 0); // old 35
+    static PIDController rotationController = new PIDController(3, 0, 0); // old 35
     static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
@@ -77,20 +77,17 @@ public class DriveCommands {
         // Add translation and strafe values
         double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
         double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
-        double rotation = 0.0;
-
-        for(var targets : result.getTargets()) {
-            targetYaw = targets.getYaw();       
-        }
         
         Logger.recordOutput("Get camera yaw", targetYaw);  
+
+        // Set tolerance of 1.5 degrees
         rotationController.setTolerance(1.5);
+
+        // Make the PID loop calculate
         rotation = rotationController.calculate(targetYaw, 0);
         
         // Make translation object
         Translation2d translation = new Translation2d(translate, strafe);
-
-        
 
         // Send the translation values to drive
         RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), -rotation * Constants.maxAngularSpd);
