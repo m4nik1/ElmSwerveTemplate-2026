@@ -48,7 +48,7 @@ public class Vision extends SubsystemBase {
   // Function gets the angle from the vision targets
   // From the hub
   public double getYawAlign() {
-    return lastSeenYawAlign
+    return lastSeenYawAlign;
   }
 
   public PhotonCamera getCamera() {

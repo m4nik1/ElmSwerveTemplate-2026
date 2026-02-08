@@ -84,7 +84,7 @@ public class DriveCommands {
         rotationController.setTolerance(1.5);
 
         // Make the PID loop calculate
-        rotation = rotationController.calculate(targetYaw, 0);
+        double rotation = rotationController.calculate(targetYaw, 0);
         
         // Make translation object
         Translation2d translation = new Translation2d(translate, strafe);
