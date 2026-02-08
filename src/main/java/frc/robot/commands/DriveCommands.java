@@ -16,7 +16,7 @@ import frc.robot.RobotContainer;
 /** Add your docs here. */
 public class DriveCommands {
 
-    static PIDController rotationController = new PIDController(35, 0, 0);
+    static PIDController rotationController = new PIDController(15, 0, 0); // old 35
     static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
@@ -53,53 +53,46 @@ public class DriveCommands {
 
             // Add the translate and strafe values to translate2d object
             Translation2d translation = new Translation2d(translateVal, strafeVal);
-            double targetYaw = 0.0;
 
             // If A is being held down, auto aim while moving, else normal drive 
             if(RobotContainer.getA()){
-                
-                var results = RobotContainer.visionLeft.getCamera().getAllUnreadResults();
-                if(!results.isEmpty()) {
-                    var result = results.get(results.size() - 1);
-
-                    for(var targets : result.getTargets()) {
-                        targetYaw = targets.getYaw();
-                         
-                    }
-                    
-                    Logger.recordOutput("Get camera yaw", targetYaw);  
-                    rotationController.setTolerance(1.5);
-                    rotationVal = rotationController.calculate(targetYaw, 0);
-                }
+                autoAimMove(xSupplier, ySupplier);
             }
-            Logger.recordOutput("Rotation output", -rotationVal*Constants.maxAngularSpd);
-            Logger.recordOutput("Aim Command", RobotContainer.getA());
-
-            // Send the translation and rotation values to drive object
-            RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),rotationVal*Constants.maxAngularSpd);
+            else {
+                // Send the translation and rotation values to drive object
+                RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed),rotationVal*Constants.maxAngularSpd);
+            }
         }, RobotContainer.driveTrain);
     }
 
     // Auto aim command
     // We want the driver to move while the robot is angled towards the tags
-    // public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
-    //     // Call the vision's getYawAlign
-    //     Rotation2d targetYaw = RobotContainer.visionLeft.getYawAlign();
-    //     double robotYaw = RobotContainer.driveTrain.getRobotPose2d().getRotation().getRadians();
+    public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+        // Call the vision's getYawAlign
+        double targetYaw = RobotContainer.visionLeft.getYawAlign();
 
-    //     double getX = xSupplier.getAsDouble();
-    //     double getY = ySupplier.getAsDouble();
+        double getX = xSupplier.getAsDouble();
+        double getY = ySupplier.getAsDouble();
 
-    //     // Add translation and strafe values
-    //     double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
-    //     double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
-    //     double rotation =0;
-    //     // Make translation object
-    //     Translation2d translation = new Translation2d(translate, strafe);
+        // Add translation and strafe values
+        double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
+        double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
+        double rotation = 0.0;
+
+        for(var targets : result.getTargets()) {
+            targetYaw = targets.getYaw();       
+        }
+        
+        Logger.recordOutput("Get camera yaw", targetYaw);  
+        rotationController.setTolerance(1.5);
+        rotation = rotationController.calculate(targetYaw, 0);
+        
+        // Make translation object
+        Translation2d translation = new Translation2d(translate, strafe);
 
         
 
-    //     // Send the translation values to drive
-    //     RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), -rotation * Constants.maxAngularSpd);
-    // }
+        // Send the translation values to drive
+        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), -rotation * Constants.maxAngularSpd);
+    }
 }
