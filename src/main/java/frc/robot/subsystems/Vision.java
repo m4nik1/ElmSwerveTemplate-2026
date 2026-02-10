@@ -32,6 +32,7 @@ public class Vision extends SubsystemBase {
   private AprilTagFieldLayout aprilTagFieldLayout;
 
   private double lastSeenYawAlign = 0.0;
+  private boolean targetFound = false;
 
   public Vision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
@@ -51,6 +52,10 @@ public class Vision extends SubsystemBase {
     return lastSeenYawAlign;
   }
 
+  public boolean targetFound() {
+    return targetFound;
+  }
+
   public PhotonCamera getCamera() {
     return camera;
   }
@@ -59,8 +64,6 @@ public class Vision extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     Optional<EstimatedRobotPose> visionEst = Optional.empty();
-    
-     Logger.recordOutput("Vision Yaw", getYawAlign());
 
     for (var result : camera.getAllUnreadResults()) {
       visionEst = photonEstimator.estimateCoprocMultiTagPose(result);
@@ -70,11 +73,21 @@ public class Vision extends SubsystemBase {
       
        if(!result.getTargets().isEmpty()) {
         for(var target: result.getTargets()) {
-          lastSeenYawAlign = target.getYaw();
+          if(target.getFiducialId() == 3 || target.getFiducialId() == 4) {
+            lastSeenYawAlign = target.getYaw();
+            targetFound = true;
+          }
+          else {
+            lastSeenYawAlign = 0.0;
+            targetFound = false;
+          }
         }
        }
+       else {
+        targetFound = false;
+       }
     }
-
+    
     visionEst.ifPresent(
         est -> {
           curStdDevs = getEstimationStdDevs();
@@ -82,6 +95,9 @@ public class Vision extends SubsystemBase {
           // Update estimator
           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
         });
+
+    Logger.recordOutput("targetFound "+ camera.getName(), targetFound());  
+    Logger.recordOutput("Vision Yaw " + camera.getName(), getYawAlign());  
   }
 
   /** Returns the current estimation standard deviations (x, y, theta). */

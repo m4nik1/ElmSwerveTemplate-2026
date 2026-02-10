@@ -8,6 +8,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
@@ -16,14 +17,9 @@ import frc.robot.RobotContainer;
 /** Add your docs here. */
 public class DriveCommands {
 
-    static PIDController rotationController = new PIDController(3, 0, 0); // old 35
     static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
-
-    static {
-        rotationController.enableContinuousInput(-180, 180);
-    }
 
     // Drive only in teleop
     public static Command teleopDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier rotationSupplier) {
@@ -55,7 +51,7 @@ public class DriveCommands {
             Translation2d translation = new Translation2d(translateVal, strafeVal);
 
             // If A is being held down, auto aim while moving, else normal drive 
-            if(RobotContainer.getA()){
+            if(RobotContainer.getA() && RobotContainer.visionRight.targetFound()){
                 autoAimMove(xSupplier, ySupplier);
             }
             else {
@@ -69,7 +65,10 @@ public class DriveCommands {
     // We want the driver to move while the robot is angled towards the tags
     public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
         // Call the vision's getYawAlign
-        double targetYaw = RobotContainer.visionLeft.getYawAlign();
+        double targetYaw = RobotContainer.visionRight.getYawAlign();
+        PIDController rotationController = new PIDController(.02, 0, 0); // old 35
+        rotationController.enableContinuousInput(-180, 180);
+
 
         double getX = xSupplier.getAsDouble();
         double getY = ySupplier.getAsDouble();
@@ -79,9 +78,7 @@ public class DriveCommands {
         double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
         
         Logger.recordOutput("Get camera yaw", targetYaw);  
-
-        // Set tolerance of 1.5 degrees
-        rotationController.setTolerance(1.5);
+        System.out.println("yaw " + targetYaw);
 
         // Make the PID loop calculate
         double rotation = rotationController.calculate(targetYaw, 0);
@@ -89,7 +86,9 @@ public class DriveCommands {
         // Make translation object
         Translation2d translation = new Translation2d(translate, strafe);
 
+        Logger.recordOutput("Rotation output", rotation);
+
         // Send the translation values to drive
-        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), -rotation * Constants.maxAngularSpd);
+        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotation * (Math.PI * 2));
     }
 }
