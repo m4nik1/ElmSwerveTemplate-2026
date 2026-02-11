@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -42,6 +44,8 @@ public final class Constants {
   public static final double driveKs = 0.15;
   public static final double driveKv = 2.0; // 6.4 is the voltage for max speed per module divde by 6.4 plz
   public static final double drivekA = .20; // 6.4 is the voltage for max speed per module
+
+  public static AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
   
   public static final Rotation2d angleOffsetMod0 = Rotation2d.fromRotations(.0307);
   public static final Rotation2d angleOffsetMod1 = Rotation2d.fromRotations(.2870);

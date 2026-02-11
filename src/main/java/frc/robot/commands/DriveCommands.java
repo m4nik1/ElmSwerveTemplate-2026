@@ -6,6 +6,8 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -19,6 +21,10 @@ public class DriveCommands {
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
     static PIDController rotationController = new PIDController(.02, 0, 0); // old 35
+
+    static {
+        rotationController.enableContinuousInput(-Math.PI, Math.PI);
+    }
 
     // Drive only in teleop
     public static Command teleopDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier rotationSupplier) {
@@ -72,12 +78,44 @@ public class DriveCommands {
         // Add translation and strafe values
         double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
         double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
-        
+
         Logger.recordOutput("Get camera yaw", targetYaw);  
         System.out.println("yaw " + targetYaw);
 
         // Make the PID loop calculate
         double rotation = rotationController.calculate(targetYaw, 0);
+        
+        // Make translation object
+        Translation2d translation = new Translation2d(translate, strafe);
+
+        Logger.recordOutput("Rotation output", rotation);
+
+        // Send the translation values to drive
+        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotation * (Math.PI * 2));
+    }
+
+    public static void autoAimMovePoses(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+        double getX = xSupplier.getAsDouble();
+        double getY = ySupplier.getAsDouble();
+
+        // Add translation and strafe values
+        double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
+        double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
+
+        Pose3d tag3 = Constants.fieldLayout.getTagPose(3).orElseThrow();
+        Pose3d tag4 = Constants.fieldLayout.getTagPose(4).orElseThrow();
+
+        Translation2d hubOffset = tag3.toPose2d().getTranslation().plus(tag4.toPose2d().getTranslation()).div(2);
+
+        Pose2d robotPose = RobotContainer.driveTrain.getPose();
+
+        double diffX = hubOffset.getX() - robotPose.getX();
+        double diffY = hubOffset.getY() - robotPose.getY();
+
+        double desiredAngle = Math.atan2(diffY, diffX);
+        double currentAngle = robotPose.getRotation().getRadians();
+
+        double rotation = rotationController.calculate(currentAngle, desiredAngle);
         
         // Make translation object
         Translation2d translation = new Translation2d(translate, strafe);
