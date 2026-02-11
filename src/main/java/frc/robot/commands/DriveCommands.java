@@ -57,7 +57,7 @@ public class DriveCommands {
 
             // If A is being held down, auto aim while moving, else normal drive 
             if(RobotContainer.getA() && RobotContainer.visionRight.targetFound()){
-                autoAimMove(xSupplier, ySupplier);
+                simpleAutoAimMove(xSupplier, ySupplier);
             }
             else {
                 // Send the translation and rotation values to drive object
@@ -68,7 +68,7 @@ public class DriveCommands {
 
     // Auto aim command
     // We want the driver to move while the robot is angled towards the tags
-    public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+    public static void simpleAutoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
         // Call the vision's getYawAlign
         double targetYaw = RobotContainer.visionRight.getYawAlign();
 
