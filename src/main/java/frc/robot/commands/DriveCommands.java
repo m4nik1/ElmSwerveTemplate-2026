@@ -20,6 +20,7 @@ public class DriveCommands {
     static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
+    static PIDController rotationController = new PIDController(.02, 0, 0); // old 35
 
     // Drive only in teleop
     public static Command teleopDrive(DoubleSupplier xSupplier, DoubleSupplier ySupplier, DoubleSupplier rotationSupplier) {
@@ -66,8 +67,7 @@ public class DriveCommands {
     public static void autoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
         // Call the vision's getYawAlign
         double targetYaw = RobotContainer.visionRight.getYawAlign();
-        PIDController rotationController = new PIDController(.02, 0, 0); // old 35
-        rotationController.enableContinuousInput(-180, 180);
+        double alignDistance = RobotContainer.visionRight.getAlignDistance();
 
 
         double getX = xSupplier.getAsDouble();

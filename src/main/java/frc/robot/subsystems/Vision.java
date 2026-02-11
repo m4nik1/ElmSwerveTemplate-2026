@@ -32,6 +32,7 @@ public class Vision extends SubsystemBase {
   private AprilTagFieldLayout aprilTagFieldLayout;
 
   private double lastSeenYawAlign = 0.0;
+  private double alignDistance = 0.0;
   private boolean targetFound = false;
 
   public Vision(String name, Transform3d robotToCamera) {
@@ -50,6 +51,10 @@ public class Vision extends SubsystemBase {
   // From the hub
   public double getYawAlign() {
     return lastSeenYawAlign;
+  }
+
+  public double getAlignDistance() {
+    return alignDistance;
   }
 
   public boolean targetFound() {
@@ -76,6 +81,7 @@ public class Vision extends SubsystemBase {
           if(target.getFiducialId() == 3 || target.getFiducialId() == 4) {
             lastSeenYawAlign = target.getYaw();
             targetFound = true;
+            alignDistance = result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm();
           }
           else {
             lastSeenYawAlign = 0.0;
