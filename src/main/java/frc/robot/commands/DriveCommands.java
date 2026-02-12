@@ -79,9 +79,6 @@ public class DriveCommands {
         double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
         double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
 
-        Logger.recordOutput("Get camera yaw", targetYaw);  
-        System.out.println("yaw " + targetYaw);
-
         // Make the PID loop calculate
         double rotation = rotationController.calculate(targetYaw, 0);
         
@@ -119,8 +116,6 @@ public class DriveCommands {
         
         // Make translation object
         Translation2d translation = new Translation2d(translate, strafe);
-
-        Logger.recordOutput("Rotation output", rotation);
 
         // Send the translation values to drive
         RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotation * (Math.PI * 2));
