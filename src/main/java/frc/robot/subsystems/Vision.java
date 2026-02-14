@@ -14,6 +14,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
+
 import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
@@ -32,7 +34,9 @@ public class Vision extends SubsystemBase {
 
   private double lastSeenYawAlign = 0.0;
   private double alignDistance = 0.0;
+  private double standardDevDistance = 0.0;
   private boolean targetFound = false;
+  private boolean isMultiTag = false;
 
   public Vision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
@@ -76,6 +80,15 @@ public class Vision extends SubsystemBase {
       }
       
        if(!result.getTargets().isEmpty()) {
+        if(result.getBestTarget() != null) {
+          standardDevDistance = result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm();
+        }
+        if(result.multitagResult != null) {
+          isMultiTag = true;
+        }
+        else {
+          isMultiTag = false;
+        }
         for(var target: result.getTargets()) {
           if(target.getFiducialId() == 3 || target.getFiducialId() == 4) {
             lastSeenYawAlign = target.getYaw();
@@ -107,11 +120,39 @@ public class Vision extends SubsystemBase {
 
   /** Returns the current estimation standard deviations (x, y, theta). */
   private Matrix<N3, N1> getEstimationStdDevs() {
-    if (curStdDevs != null) {
-      return curStdDevs;
+    // If dont have a good distance, use conservative defaults
+    if (curStdDevs != null || standardDevDistance < 0.0) {
+      return VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(100));
     }
+
+    double stdDeviation = 2;
+
+    if(!isMultiTag) {
+      if(standardDevDistance <= 1.5) {
+        stdDeviation = 0.4;
+      } else if(standardDevDistance < 2.5) {
+        stdDeviation = 1.5;
+      } else if(standardDevDistance < 3) {
+        stdDeviation = 5.0;
+      } else {
+        stdDeviation = 10.0;
+      }
+    } else {
+      if(standardDevDistance < 1) {
+        stdDeviation = 0.07;
+      } else if(standardDevDistance < 2) {
+        stdDeviation = 0.11;
+      } else if(standardDevDistance < 3) {
+        stdDeviation = 0.16;
+      } else if(standardDevDistance < 4) {
+        stdDeviation = 0.2;
+      } else {
+        stdDeviation = 10.0;
+      }
+    }
+
     
     // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
-    return VecBuilder.fill(0.5, 0.5, 0.5);
+    return VecBuilder.fill(stdDeviation, stdDeviation, Units.degreesToRadians(100));
   }
 }
