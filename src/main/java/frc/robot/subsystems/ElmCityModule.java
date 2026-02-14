@@ -250,6 +250,7 @@ public class ElmCityModule extends SubsystemBase {
     double velocity = driveMotor.getPosition().getValueAsDouble() * Constants.wheelCircum;
 
     return velocity;
+    
   }
 
   public void setVel(double vel) {

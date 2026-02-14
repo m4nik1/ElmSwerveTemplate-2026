@@ -41,9 +41,9 @@ public final class Constants {
             new Translation2d(-wheelBase / 2.0, trackWidth / 2.0),
             new Translation2d(-wheelBase / 2.0, -trackWidth / 2.0));
 
-  public static final double driveKs = 0.15;
-  public static final double driveKv = 2.0; // 6.4 is the voltage for max speed per module divde by 6.4 plz
-  public static final double drivekA = .20; // 6.4 is the voltage for max speed per module
+  public static final double driveKs = 0.14;
+  public static final double driveKv = .68; // 6.4 is the voltage for max speed per module divde by 6.4 plz
+  public static final double drivekA = .02; // 6.4 is the voltage for max speed per module
 
   public static AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
   

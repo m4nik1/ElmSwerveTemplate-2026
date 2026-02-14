@@ -74,8 +74,8 @@ public class DriveTrain extends SubsystemBase {
       this::getRobotSpds, 
       (speeds, feedforwards) -> driveRobotRelative(speeds), 
       new PPHolonomicDriveController(
-          new PIDConstants(0, 0, 0), // XY PID
-          new PIDConstants(0, 0, 0)  // Rotational PID
+          new PIDConstants(4.7, 0, 0), // XY PID
+          new PIDConstants(4.5, 0, 0)  // Rotational PID
         ), 
       autoConfig, 
       () -> {
@@ -161,7 +161,7 @@ public class DriveTrain extends SubsystemBase {
   }
 
   public void updatePoseEstimate(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {
-    odom.addVisionMeasurement(pose, timestamp, stdDevs);
+    // odom.addVisionMeasurement(pose, timestamp, stdDevs);
   }
 
 
