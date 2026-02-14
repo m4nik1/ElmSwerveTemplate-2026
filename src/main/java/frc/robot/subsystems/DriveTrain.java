@@ -190,8 +190,10 @@ public class DriveTrain extends SubsystemBase {
 
   @Override
   public void periodic() {
+    odom.update(getYaw(), getPositions());
     // Update pose with odometry using odom
     Logger.recordOutput("robotAngle", getYaw().getDegrees());
+    Logger.recordOutput("robotPose",getPose());
 
   }
 }
