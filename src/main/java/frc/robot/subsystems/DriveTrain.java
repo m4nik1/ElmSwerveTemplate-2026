@@ -64,6 +64,7 @@ public class DriveTrain extends SubsystemBase {
     resetGyro();
 
     final VoltageOut m_sysIdControl = new VoltageOut(0);
+    this.setAnglesZero();
 
     m_sysIdRoutine = new SysIdRoutine(
         new SysIdRoutine.Config(
