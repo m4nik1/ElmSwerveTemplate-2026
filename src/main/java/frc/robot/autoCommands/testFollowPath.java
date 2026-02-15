@@ -32,6 +32,7 @@ public class testFollowPath {
         // We define the command we want to run in auto
         Command cmd = Commands.sequence(
             AutoBuilder.resetOdom(startingPose),
+            // Instant command can be run here for setting intake down
             AutoBuilder.followPath(path1)
         );
 
