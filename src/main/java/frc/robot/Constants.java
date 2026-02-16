@@ -31,7 +31,7 @@ public final class Constants {
   public static final double speedMultiTeleop = 0.65;
   public static final double speedTurboTeleop = .85;
   public static final double maxSpeed = 4; // meters per second
-  public static final double maxAngularSpd = 5;
+  public static final double maxAngularSpd = 5; // radians per second
   public static final double freeSpd = ((6784 / 60) * (wheelDia * Math.PI)) / driveRatio;
 
       // Swerve Kinematics
