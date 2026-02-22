@@ -109,6 +109,9 @@ public class Vision extends SubsystemBase {
     visionEst.ifPresent(
         est -> {
           curStdDevs = getEstimationStdDevs();
+          if(curStdDevs == null) {
+            return;
+          }
 
           // Update estimator
           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
@@ -121,10 +124,6 @@ public class Vision extends SubsystemBase {
   /** Returns the current estimation standard deviations (x, y, theta). */
   private Matrix<N3, N1> getEstimationStdDevs() {
     // If dont have a good distance, use conservative defaults
-    if (curStdDevs != null || standardDevDistance < 0.0) {
-      return VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(100));
-    }
-
     double stdDeviation = 2;
 
     if(!isMultiTag) {
@@ -135,7 +134,7 @@ public class Vision extends SubsystemBase {
       } else if(standardDevDistance < 3) {
         stdDeviation = 5.0;
       } else {
-        stdDeviation = 10.0;
+        return null;
       }
     } else {
       if(standardDevDistance < 1) {
@@ -147,7 +146,7 @@ public class Vision extends SubsystemBase {
       } else if(standardDevDistance < 4) {
         stdDeviation = 0.2;
       } else {
-        stdDeviation = 10.0;
+        return null;
       }
     }
 

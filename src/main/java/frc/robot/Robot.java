@@ -22,13 +22,13 @@ public class Robot extends LoggedRobot {
   private final RobotContainer m_robotContainer;
 
   public Robot() {
-    m_robotContainer = new RobotContainer();
 
     Logger.addDataReceiver(new WPILOGWriter()); // Log to a USB stick ("/U/logs")
     Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
 
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may be added.
 
+    m_robotContainer = new RobotContainer();
     SignalLogger.stop();
   }
 
