@@ -22,6 +22,7 @@ import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 public class Vision extends SubsystemBase {
   /** Creates a new Vision. */
@@ -29,7 +30,7 @@ public class Vision extends SubsystemBase {
   private final PhotonCamera camera;
   private final PhotonPoseEstimator photonEstimator;
   private Matrix<N3, N1> curStdDevs;
-  
+
   private AprilTagFieldLayout aprilTagFieldLayout;
 
   private double lastSeenYawAlign = 0.0;
@@ -42,7 +43,8 @@ public class Vision extends SubsystemBase {
     camera = new PhotonCamera(name);
     aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
-    photonEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, robotToCamera);
+    photonEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
+        robotToCamera);
   }
 
   @FunctionalInterface
@@ -70,55 +72,38 @@ public class Vision extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    Optional<EstimatedRobotPose> visionEst = Optional.empty();
-
+    targetFound = false;
     for (var result : camera.getAllUnreadResults()) {
-      visionEst = photonEstimator.estimateCoprocMultiTagPose(result);
-      if(visionEst.isEmpty()) {
-        visionEst = photonEstimator.estimateLowestAmbiguityPose(result);
-      }
-      
-       if(!result.getTargets().isEmpty()) {
-        if(result.getBestTarget() != null) {
+      if (!result.getTargets().isEmpty()) {
+        if (result.getBestTarget() != null) {
           standardDevDistance = result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm();
         }
-        if(result.multitagResult != null) {
-          isMultiTag = true;
-        }
-        else {
-          isMultiTag = false;
-        }
-        for(var target: result.getTargets()) {
-          if(target.getFiducialId() == 3 || target.getFiducialId() == 4) {
+        isMultiTag = result.multitagResult != null;
+        // Setting target found to false
+        targetFound = false;
+
+        for (var target : result.getTargets()) {
+          if (target.getFiducialId() == 3 || target.getFiducialId() == 4) {
             lastSeenYawAlign = target.getYaw();
             targetFound = true;
-            alignDistance = result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm();
-          }
-          else {
-            lastSeenYawAlign = 0.0;
-            targetFound = false;
-          }
+            alignDistance = target.getBestCameraToTarget().getTranslation().getNorm();
+
+            break;
+          } 
         }
-       }
-       else {
+      } else {
         targetFound = false;
-       }
-    }
-    
-    visionEst.ifPresent(
-        est -> {
-          curStdDevs = getEstimationStdDevs();
-          if(curStdDevs == null) {
-            return;
-          }
+      }
 
-          // Update estimator
+      photonEstimator.update(result).ifPresent(est -> {
+        curStdDevs = getEstimationStdDevs();
+        if(curStdDevs != null) {
           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
-        });
-
-    Logger.recordOutput("targetFound "+ camera.getName(), targetFound());  
-    Logger.recordOutput("Vision Yaw " + camera.getName(), getYawAlign());  
+        }
+      });
+    }
+    // Logger.recordOutput("targetFound " + camera.getName(), targetFound());
+    // Logger.recordOutput("Vision Yaw " + camera.getName(), getYawAlign());
   }
 
   /** Returns the current estimation standard deviations (x, y, theta). */
@@ -126,31 +111,32 @@ public class Vision extends SubsystemBase {
     // If dont have a good distance, use conservative defaults
     double stdDeviation = 2;
 
-    if(!isMultiTag) {
-      if(standardDevDistance <= 1.5) {
-        stdDeviation = 0.4;
-      } else if(standardDevDistance < 2.5) {
-        stdDeviation = 1.5;
-      } else if(standardDevDistance < 3) {
-        stdDeviation = 5.0;
+    if (!isMultiTag) {
+      if(standardDevDistance < 1) {
+        stdDeviation = 0.35;
+      } else if (standardDevDistance <= 1.75) {
+        stdDeviation = 0.7;
+      } else if (standardDevDistance < 2.5) {
+        stdDeviation = 1.4;
+      } else if (standardDevDistance < 3) {
+        stdDeviation = 2.8;
       } else {
         return null;
       }
     } else {
-      if(standardDevDistance < 1) {
+      if (standardDevDistance < 1) {
         stdDeviation = 0.07;
-      } else if(standardDevDistance < 2) {
+      } else if (standardDevDistance < 2) {
         stdDeviation = 0.11;
-      } else if(standardDevDistance < 3) {
+      } else if (standardDevDistance < 3) {
         stdDeviation = 0.16;
-      } else if(standardDevDistance < 4) {
+      } else if (standardDevDistance < 4) {
         stdDeviation = 0.2;
       } else {
         return null;
       }
     }
 
-    
     // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
     return VecBuilder.fill(stdDeviation, stdDeviation, Units.degreesToRadians(100));
   }
