@@ -60,8 +60,8 @@ public class DriveTrain extends SubsystemBase {
                                         getYaw(), 
                                         getPositions(), 
                                         new Pose2d() 
-                                        // VecBuilder.fill(0.05, 0.05, 0.01), 
-                                        // VecBuilder.fill(0.1, 0.1, Double.MAX_VALUE)
+                                        // VecBuilder.fill(0.1, 0.1, 0.1), 
+                                        // VecBuilder.fill(0.9, 0.9, 0.9)
                                       );
 
     try {

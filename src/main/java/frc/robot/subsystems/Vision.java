@@ -14,30 +14,27 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.math.util.Units;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class Vision extends SubsystemBase {
   /** Creates a new Vision. */
 
   private final PhotonCamera camera;
   private final PhotonPoseEstimator photonEstimator;
-  private Matrix<N3, N1> curStdDevs;
 
   private AprilTagFieldLayout aprilTagFieldLayout;
 
   private double lastSeenYawAlign = 0.0;
   private double alignDistance = 0.0;
-  private double standardDevDistance = 0.0;
   private boolean targetFound = false;
-  private boolean isMultiTag = false;
 
   public Vision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
@@ -70,20 +67,42 @@ public class Vision extends SubsystemBase {
     return camera;
   }
 
+  private double getAverageDistance(List<PhotonTrackedTarget> targets) {
+    double totalDistance = 0.0;
+    int count = 0;
+
+    for (var target : targets) {
+        // Get the transform from the camera to the tag
+        var cameraToTarget = target.getBestCameraToTarget();
+        
+        // Calculate the 3D distance using the translation component
+        double distance = cameraToTarget.getTranslation().getNorm();
+        
+        totalDistance += distance;
+        count++;
+    }
+
+    if (count == 0) return 0.0;
+    return totalDistance / count;
+  }
+
+  private static boolean isAlignTag(PhotonTrackedTarget target) {
+    int id = target.getFiducialId();
+    return id == 3 || id == 4;
+  }
+
   @Override
   public void periodic() {
     targetFound = false;
+    alignDistance = Double.NaN;
+
     for (var result : camera.getAllUnreadResults()) {
       if (!result.getTargets().isEmpty()) {
-        if (result.getBestTarget() != null) {
-          standardDevDistance = result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm();
-        }
-        isMultiTag = result.multitagResult != null;
         // Setting target found to false
         targetFound = false;
 
         for (var target : result.getTargets()) {
-          if (target.getFiducialId() == 3 || target.getFiducialId() == 4) {
+          if (isAlignTag(target)) {
             lastSeenYawAlign = target.getYaw();
             targetFound = true;
             alignDistance = target.getBestCameraToTarget().getTranslation().getNorm();
@@ -96,7 +115,13 @@ public class Vision extends SubsystemBase {
       }
 
       photonEstimator.update(result).ifPresent(est -> {
-        curStdDevs = getEstimationStdDevs();
+        if(est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.2) {
+          // If we only have one target and its pose ambiguity is high, skip updating the pose
+          return;
+        }
+
+        var curStdDevs = getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
+        
         if(curStdDevs != null) {
           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
         }
@@ -107,37 +132,24 @@ public class Vision extends SubsystemBase {
   }
 
   /** Returns the current estimation standard deviations (x, y, theta). */
-  private Matrix<N3, N1> getEstimationStdDevs() {
+  private Matrix<N3, N1> getEstimationStdDevs(EstimatedRobotPose est, double averageDistance) {
     // If dont have a good distance, use conservative defaults
     double stdDeviation = 2;
+    boolean isMultiTag = est.targetsUsed.size() > 1;
 
     if (!isMultiTag) {
-      if(standardDevDistance < 1) {
-        stdDeviation = 0.35;
-      } else if (standardDevDistance <= 1.75) {
-        stdDeviation = 0.7;
-      } else if (standardDevDistance < 2.5) {
-        stdDeviation = 1.4;
-      } else if (standardDevDistance < 3) {
-        stdDeviation = 2.8;
-      } else {
-        return null;
-      }
+      if(averageDistance < 1) stdDeviation = 0.35;
+      else if (averageDistance <= 1.75) stdDeviation = 0.7;
+      else if (averageDistance < 2.5) stdDeviation = 1.4;
+      else return VecBuilder.fill(99, 99,99);
     } else {
-      if (standardDevDistance < 1) {
-        stdDeviation = 0.07;
-      } else if (standardDevDistance < 2) {
-        stdDeviation = 0.11;
-      } else if (standardDevDistance < 3) {
-        stdDeviation = 0.16;
-      } else if (standardDevDistance < 4) {
-        stdDeviation = 0.2;
-      } else {
-        return null;
-      }
+      if (averageDistance < 1) stdDeviation = 0.1;
+      else if (averageDistance < 2) stdDeviation = 0.2;
+      else if (averageDistance < 4) stdDeviation = 0.4;
+      else return VecBuilder.fill(99, 99,99);
     }
 
     // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
-    return VecBuilder.fill(stdDeviation, stdDeviation, Units.degreesToRadians(100));
+    return VecBuilder.fill(stdDeviation, stdDeviation, 999999.0 );
   }
 }
