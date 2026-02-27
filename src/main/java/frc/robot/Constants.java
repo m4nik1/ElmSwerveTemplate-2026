@@ -78,10 +78,10 @@ public final class Constants {
         REPLAY
     }
 
-    public static final Translation2d HUB_CENTER = Constants.fieldLayout.getTagPose(3).orElseThrow()
+    public static final Translation2d HUB_CENTER = Constants.fieldLayout.getTagPose(25).orElseThrow()
             .toPose2d().getTranslation()
             .plus(
-                    Constants.fieldLayout.getTagPose(4).orElseThrow()
+                    Constants.fieldLayout.getTagPose(26).orElseThrow()
                             .toPose2d().getTranslation())
             .div(2.0);
 
