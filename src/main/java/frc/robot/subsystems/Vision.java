@@ -38,15 +38,10 @@ public class Vision extends SubsystemBase {
 
   public Vision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
-    aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+    aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
 
     photonEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
         robotToCamera);
-  }
-
-  @FunctionalInterface
-  public static interface EstimateConsumer {
-    public void accept(Pose2d pose, double timestamp, Matrix<N3, N1> estimationStdDevs);
   }
 
   // Function gets the angle from the vision targets
@@ -115,7 +110,7 @@ public class Vision extends SubsystemBase {
       }
 
       photonEstimator.update(result).ifPresent(est -> {
-        if(est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.2) {
+        if(est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.15) {
           // If we only have one target and its pose ambiguity is high, skip updating the pose
           return;
         }
@@ -128,7 +123,7 @@ public class Vision extends SubsystemBase {
       });
     }
     // Logger.recordOutput("targetFound " + camera.getName(), targetFound());
-    // Logger.recordOutput("Vision Yaw " + camera.getName(), getYawAlign());
+    Logger.recordOutput("Vision Yaw " + camera.getName(), getYawAlign());
   }
 
   /** Returns the current estimation standard deviations (x, y, theta). */
@@ -136,6 +131,9 @@ public class Vision extends SubsystemBase {
     // If dont have a good distance, use conservative defaults
     double stdDeviation = 2;
     boolean isMultiTag = est.targetsUsed.size() > 1;
+    
+    Logger.recordOutput("Auto/alignDistance", averageDistance);
+    Logger.recordOutput("Is multitag", isMultiTag);
 
     if (!isMultiTag) {
       if(averageDistance < 1) stdDeviation = 0.35;

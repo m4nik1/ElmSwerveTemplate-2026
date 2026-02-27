@@ -75,6 +75,15 @@ public final class Constants {
       REPLAY
   }
 
+  public static final Translation2d HUB_CENTER =
+    Constants.fieldLayout.getTagPose(3).orElseThrow()
+        .toPose2d().getTranslation()
+        .plus(
+            Constants.fieldLayout.getTagPose(4).orElseThrow()
+                .toPose2d().getTranslation()
+        )
+        .div(2.0);
+
   public static final double driveKp = 1.5;
   public static final double driveKi = 0.0;
   public static final double driveKd = 0;

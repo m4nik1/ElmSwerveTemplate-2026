@@ -59,9 +59,9 @@ public class DriveTrain extends SubsystemBase {
     odom = new SwerveDrivePoseEstimator(Constants.swerveKinematics,
                                         getYaw(), 
                                         getPositions(), 
-                                        new Pose2d() 
-                                        // VecBuilder.fill(0.1, 0.1, 0.1), 
-                                        // VecBuilder.fill(0.9, 0.9, 0.9)
+                                        new Pose2d(), 
+                                        VecBuilder.fill(0.1, 0.1, 0.1), 
+                                        VecBuilder.fill(0.9, 0.9, 0.9)
                                       );
 
     try {
@@ -165,7 +165,7 @@ public class DriveTrain extends SubsystemBase {
   }
 
   public void updatePoseEstimate(Pose2d pose, double timestamp, Matrix<N3, N1> stdDevs) {
-    System.out.println("Std devs: " + stdDevs);
+    // System.out.println("Std devs: " + stdDevs);
     odom.addVisionMeasurement(new Pose2d(pose.getX(), pose.getY(), getYaw()), timestamp, stdDevs);
   }
 
