@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.RobotContainer;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -66,19 +67,31 @@ public class Vision extends SubsystemBase {
     double totalDistance = 0.0;
     int count = 0;
 
+    // Go through each target for that pose
+    //
     for (var target : targets) {
-        // Get the transform from the camera to the tag
-        var cameraToTarget = target.getBestCameraToTarget();
-        
-        // Calculate the 3D distance using the translation component
-        double distance = cameraToTarget.getTranslation().getNorm();
-        
-        totalDistance += distance;
-        count++;
+      // Get the transform from the camera to the tag
+      var cameraToTarget = target.getBestCameraToTarget().getTranslation();
+
+      // Calculate the 3D distance using the translation component
+      double distance = Math.hypot(cameraToTarget.getX(), cameraToTarget.getY());
+
+      totalDistance += distance;
+      count++;
     }
 
-    if (count == 0) return 0.0;
+    if (count == 0)
+      return 0.0;
+
     return totalDistance / count;
+  }
+
+  public double getDistanceClosestCamera(List<PhotonTrackedTarget> targets, EstimatedRobotPose est) {
+    return targets.stream()
+        .mapToDouble(trackedTarget -> est.estimatedPose.toPose2d()
+            .relativeTo(Constants.fieldLayout.getTagPose(trackedTarget.getFiducialId()).get().toPose2d())
+            .getTranslation().getNorm())
+        .min().orElse(1000);
   }
 
   private static boolean isAlignTag(PhotonTrackedTarget target) {
@@ -103,21 +116,22 @@ public class Vision extends SubsystemBase {
             alignDistance = target.getBestCameraToTarget().getTranslation().getNorm();
 
             break;
-          } 
+          }
         }
       } else {
         targetFound = false;
       }
 
       photonEstimator.update(result).ifPresent(est -> {
-        if(est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.15) {
-          // If we only have one target and its pose ambiguity is high, skip updating the pose
+        if (est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.15) {
+          // If we only have one target and its pose ambiguity is high, skip updating the
+          // pose
           return;
         }
+        // getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
+        var curStdDevs = getEstimationStdDevs(est, getDistanceClosestCamera(est.targetsUsed, est));
 
-        var curStdDevs = getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
-        
-        if(curStdDevs != null) {
+        if (curStdDevs != null) {
           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
         }
       });
@@ -131,23 +145,31 @@ public class Vision extends SubsystemBase {
     // If dont have a good distance, use conservative defaults
     double stdDeviation = 2;
     boolean isMultiTag = est.targetsUsed.size() > 1;
-    
+
     Logger.recordOutput("Auto/alignDistance", averageDistance);
     Logger.recordOutput("Is multitag", isMultiTag);
 
     if (!isMultiTag) {
-      if(averageDistance < 1) stdDeviation = 0.35;
-      else if (averageDistance <= 1.75) stdDeviation = 0.7;
-      else if (averageDistance < 2.5) stdDeviation = 1.4;
-      else return VecBuilder.fill(99, 99,99);
+      if (averageDistance < 1)
+        stdDeviation = 0.35;
+      else if (averageDistance <= 1.75)
+        stdDeviation = 0.7;
+      else if (averageDistance < 2.5)
+        stdDeviation = 1.4;
+      else
+        return VecBuilder.fill(99, 99, 99);
     } else {
-      if (averageDistance < 1) stdDeviation = 0.1;
-      else if (averageDistance < 2) stdDeviation = 0.2;
-      else if (averageDistance < 4) stdDeviation = 0.4;
-      else return VecBuilder.fill(99, 99,99);
+      if (averageDistance < 1)
+        stdDeviation = 0.1;
+      else if (averageDistance < 2)
+        stdDeviation = 0.2;
+      else if (averageDistance < 4)
+        stdDeviation = 0.4;
+      else
+        return VecBuilder.fill(99, 99, 99);
     }
 
     // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
-    return VecBuilder.fill(stdDeviation, stdDeviation, 999999.0 );
+    return VecBuilder.fill(stdDeviation, stdDeviation, 999999.0);
   }
 }
