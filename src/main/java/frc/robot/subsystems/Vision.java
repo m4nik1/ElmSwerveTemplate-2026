@@ -160,11 +160,11 @@ public class Vision extends SubsystemBase {
         return VecBuilder.fill(99, 99, 99);
     } else {
       if (averageDistance < 1)
-        stdDeviation = 0.1;
+        stdDeviation = 0.15;
       else if (averageDistance < 2)
-        stdDeviation = 0.2;
+        stdDeviation = 0.25;
       else if (averageDistance < 4)
-        stdDeviation = 0.4;
+        stdDeviation = 0.45;
       else
         return VecBuilder.fill(99, 99, 99);
     }
