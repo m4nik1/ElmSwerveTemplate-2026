@@ -151,7 +151,7 @@ public class Vision extends SubsystemBase {
 
     if (!isMultiTag) {
       if (averageDistance < 1)
-        stdDeviation = 0.35;
+        stdDeviation = 0.22;
       else if (averageDistance <= 1.75)
         stdDeviation = 0.7;
       else if (averageDistance < 2.5)
