@@ -146,7 +146,8 @@ public class Vision extends SubsystemBase {
     double stdDeviation = 2;
     boolean isMultiTag = est.targetsUsed.size() > 1;
 
-    Logger.recordOutput("Auto/alignDistance", averageDistance);
+    Logger.recordOutput("Auto/alignDistance", getDistanceClosestCamera(est.targetsUsed, est));
+    Logger.recordOutput("Auto/AverageDistance", averageDistance);
     Logger.recordOutput("Is multitag", isMultiTag);
 
     if (!isMultiTag) {
