@@ -106,32 +106,4 @@ public class DriveCommands {
         // Send the translation values to drive
         RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotation);
     }
-
-    // Auto aim command
-    // We want the driver to move while the robot is angled towards the tags
-    public static void simpleAutoAimMove(DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
-        // Call the vision's getYawAlign
-        double targetYaw = RobotContainer.visionRight.getYawAlign();
-
-        double getX = xSupplier.getAsDouble();
-        double getY = ySupplier.getAsDouble();
-
-        // Add translation and strafe values
-        double translate = autoAimTranslationLimiter.calculate(.8 * MathUtil.applyDeadband(getX, .01));
-        double strafe = autoAimStrafeLimiter.calculate(.8 * MathUtil.applyDeadband(getY, .01));
-
-        Logger.recordOutput("Get camera yaw", targetYaw);
-        System.out.println("yaw " + targetYaw);
-
-        // Make the PID loop calculate
-        double rotation = rotationController.calculate(targetYaw, 0);
-
-        // Make translation object
-        Translation2d translation = new Translation2d(translate, strafe);
-
-        Logger.recordOutput("Rotation output", rotation);
-
-        // Send the translation values to drive
-        RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotation * (Math.PI * 2));
-    }
 }

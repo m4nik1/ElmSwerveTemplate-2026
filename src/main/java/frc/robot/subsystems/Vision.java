@@ -96,7 +96,7 @@ public class Vision extends SubsystemBase {
 
   private static boolean isAlignTag(PhotonTrackedTarget target) {
     int id = target.getFiducialId();
-    return id == 3 || id == 4;
+    return id == 25 || id == 26;
   }
 
   @Override
@@ -129,7 +129,7 @@ public class Vision extends SubsystemBase {
           return;
         }
         // getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
-        var curStdDevs = getEstimationStdDevs(est, getDistanceClosestCamera(est.targetsUsed, est));
+        var curStdDevs = getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
 
         if (curStdDevs != null) {
           RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);

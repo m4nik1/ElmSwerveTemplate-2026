@@ -24,10 +24,10 @@ public class RobotContainer {
   public static DriveTrain driveTrain = new DriveTrain();
   private SendableChooser<Command> autoChooser = new SendableChooser<>(); 
   
-  public static Vision visionRight = new Vision("elm_right_cam", new Transform3d(
-    Units.inchesToMeters(-3.5), Units.inchesToMeters(13), 0.0, 
-    new Rotation3d(0, Units.degreesToRadians(-20), 0)
-  ));
+  // public static Vision visionRight = new Vision("elm_right_cam", new Transform3d(
+  //   Units.inchesToMeters(-3.5), Units.inchesToMeters(13), 0.0, 
+  //   new Rotation3d(0, Units.degreesToRadians(-20), 0)
+  // ));
 
   public static Vision visionLeft = new Vision(
     "elm_left_cam", new Transform3d(
@@ -62,7 +62,5 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     return autoChooser.getSelected();
-    // An example command will be run in autonomous
-    // return Autos.exampleAuto();
   }
 }
