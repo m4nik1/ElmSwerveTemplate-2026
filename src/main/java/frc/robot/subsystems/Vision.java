@@ -35,7 +35,6 @@ public class Vision extends SubsystemBase {
 
   private double lastSeenYawAlign = 0.0;
   private double alignDistance = 0.0;
-  private boolean targetFound = false;
 
   public Vision(String name, Transform3d robotToCamera) {
     camera = new PhotonCamera(name);
@@ -53,10 +52,6 @@ public class Vision extends SubsystemBase {
 
   public double getAlignDistance() {
     return alignDistance;
-  }
-
-  public boolean targetFound() {
-    return targetFound;
   }
 
   public PhotonCamera getCamera() {
@@ -101,40 +96,35 @@ public class Vision extends SubsystemBase {
 
   @Override
   public void periodic() {
-    targetFound = false;
     alignDistance = Double.NaN;
 
     for (var result : camera.getAllUnreadResults()) {
       if (!result.getTargets().isEmpty()) {
-        // Setting target found to false
-        targetFound = false;
-
         for (var target : result.getTargets()) {
           if (isAlignTag(target)) {
             lastSeenYawAlign = target.getYaw();
-            targetFound = true;
             alignDistance = target.getBestCameraToTarget().getTranslation().getNorm();
-
             break;
           }
         }
-      } else {
-        targetFound = false;
       }
 
-      photonEstimator.update(result).ifPresent(est -> {
-        if (est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.15) {
-          // If we only have one target and its pose ambiguity is high, skip updating the
-          // pose
-          return;
-        }
-        // getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
-        var curStdDevs = getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
 
-        if (curStdDevs != null) {
-          RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
-        }
-      });
+      if(camera.getName() == "elm_left_cam") {
+        photonEstimator.update(result).ifPresent(est -> {
+          if (est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.15) {
+            // If we only have one target and its pose ambiguity is high, skip updating the
+            // pose
+            return;
+          }
+          // getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
+          var curStdDevs = getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
+
+          if (curStdDevs != null) {
+            RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
+          }
+        });
+      }
     }
     // Logger.recordOutput("targetFound " + camera.getName(), targetFound());
     Logger.recordOutput("Vision Yaw " + camera.getName(), getYawAlign());
