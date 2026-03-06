@@ -20,7 +20,6 @@ public class testFollowPath {
 
     private final String path1Name= "Right Side Auto";
 
-
     // Use deadline commands to run a intake or shooter while following a path
     public PathPlannerAuto getAuto()  throws IOException, ParseException {
         var path1 = PathPlannerPath.fromPathFile(path1Name);
