@@ -47,9 +47,11 @@ public class RobotContainer {
 
     configureBindings();
     autoChooser.addOption("StraightAutotest",new PathPlannerAuto("Straight test P"));
-    autoChooser.addOption("Rightside90", new PathPlannerAuto("Right Side 90"));
+   autoChooser.addOption( "Center Auto", new PathPlannerAuto("Center Auto"));
+    autoChooser.addOption("Right Auto completion Test", new PathPlannerAuto("Right Auto completion Test"));
     SmartDashboard.putData("autoChooser", autoChooser);
   }
+    
 
   private void configureBindings() {
     // controller.a().onTrue(DriveCommands.autoAimMove(()->-controller.getLeftY(),() ->-controller.getRightX()));
