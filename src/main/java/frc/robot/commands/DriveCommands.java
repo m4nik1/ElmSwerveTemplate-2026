@@ -80,7 +80,7 @@ public class DriveCommands {
         Translation2d robotTranslation = robotPose.getTranslation();
 
         // Vector from robot to hub
-        Translation2d toHub = Constants.HUB_CENTER.minus(robotTranslation);
+        Translation2d toHub = Constants.HUB_BLUE_CENTER_POINT.toTranslation2d().minus(robotTranslation);
 
         double desiredAngle = Math.atan2(toHub.getY(), toHub.getX());
 
