@@ -89,12 +89,19 @@ public final class Constants {
 
      public static final double width = Units.inchesToMeters(47.0);
      public static final double height =
-        Units.inchesToMeters(72.0); // includes the catcher at the top
+        Units.inchesToMeters(56.5); // includes the catcher at the top
+
 
     public static final Translation3d HUB_BLUE_CENTER = new Translation3d(
             Constants.fieldLayout.getTagPose(26).get().getX() + width / 2.0,
             Constants.fieldLayout.getFieldWidth() / 2.0,
             height);
+
+    public static final Translation3d INNER_CENTER_POINT = new Translation3d(
+        _layout.getTagPose(26).X() + WIDTH / 2.0,
+        FIELD_WIDTH / 2.0,
+        INNER_HEIGHT
+    )
 
     public static final double driveKp = 1.5;
     public static final double driveKi = 0.0;
