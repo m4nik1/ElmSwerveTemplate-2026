@@ -109,8 +109,7 @@ public class Vision extends SubsystemBase {
         }
       }
 
-
-      if(camera.getName() == "elm_left_cam") {
+      if (camera.getName() == "elm_left_cam") {
         photonEstimator.update(result).ifPresent(est -> {
           if (est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.15) {
             // If we only have one target and its pose ambiguity is high, skip updating the
@@ -121,7 +120,8 @@ public class Vision extends SubsystemBase {
           var curStdDevs = getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
 
           if (curStdDevs != null) {
-            RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds, curStdDevs);
+            RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds,
+                curStdDevs);
           }
         });
       }
@@ -142,20 +142,20 @@ public class Vision extends SubsystemBase {
 
     if (!isMultiTag) {
       if (averageDistance < 1)
-        stdDeviation = 0.22;
+        stdDeviation = 0.35; // was .22
       else if (averageDistance <= 1.75)
         stdDeviation = 0.7;
       else if (averageDistance < 2.5)
         stdDeviation = 1.4;
       else
         return VecBuilder.fill(99, 99, 99);
-    } else {
+    } else { // This means it is multitag
       if (averageDistance < 1)
-        stdDeviation = 0.15;
+        stdDeviation = 0.10;
       else if (averageDistance < 2)
-        stdDeviation = 0.25;
+        stdDeviation = 0.20;
       else if (averageDistance < 4)
-        stdDeviation = 0.45;
+        stdDeviation = 0.40;
       else
         return VecBuilder.fill(99, 99, 99);
     }
