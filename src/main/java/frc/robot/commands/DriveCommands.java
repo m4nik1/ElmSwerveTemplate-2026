@@ -19,7 +19,7 @@ public class DriveCommands {
     static SlewRateLimiter autoAimTranslationLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimStrafeLimiter = new SlewRateLimiter(3);
     static SlewRateLimiter autoAimRotationLimiter = new SlewRateLimiter(3);
-    static PIDController rotationController = new PIDController(4.5, 0, 0); // old .02
+    static PIDController rotationController = new PIDController(5.4, 0, 0); // old .02
 
     static {
         rotationController.enableContinuousInput(-Math.PI, Math.PI);
@@ -45,7 +45,8 @@ public class DriveCommands {
             double getY = ySupplier.getAsDouble();
             double getRotation = rotationSupplier.getAsDouble();
 
-            // Logger.recordOutput("vision angle diff",
+            Logger.recordOutput("Hub center blue", Constants.HUB_BLUE_CENTER_POINT);
+            Logger.recordOutput("Hub center fake", Constants.HUB_CENTER);
             // RobotContainer.visionLeft.getYawAlign()-RobotContainer.driveTrain.getRobotAngle());
 
             // Calculate and apply deadband the values of each
@@ -102,6 +103,8 @@ public class DriveCommands {
                 desiredAngle);
         Logger.recordOutput("AutoAim/RotationOutput",
                 rotation);
+        Logger.recordOutput("AutoAim/CurrentAngle",
+                currentAngle);
 
         // Send the translation values to drive
         RobotContainer.driveTrain.drive(translation.times(Constants.maxSpeed), rotation);

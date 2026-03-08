@@ -14,15 +14,20 @@ import org.json.simple.parser.ParseException;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 /** Add your docs here. */
-public class testFollowPath {
+public class LeftSidePeak {
 
-    private final String path1Name= "Right Side Auto";
+    private final String path1Name = "Left Side peak";
+    private final String path2Name = "Left Side balls"; 
+    private final String path3Name = "Left side Peak return";
 
     // Use deadline commands to run a intake or shooter while following a path
     public PathPlannerAuto getAuto()  throws IOException, ParseException {
         var path1 = PathPlannerPath.fromPathFile(path1Name);
+        var path2 = PathPlannerPath.fromPathFile(path2Name);
+        var path3 = PathPlannerPath.fromPathFile(path3Name);
 
         // Get starting pose of the path
         var startingPose = new Pose2d(path1.getPoint(0).position, path1.getIdealStartingState().rotation());
@@ -32,7 +37,12 @@ public class testFollowPath {
         Command cmd = Commands.sequence(
             AutoBuilder.resetOdom(startingPose),
             // Instant command can be run here for setting intake down
-            AutoBuilder.followPath(path1)
+            AutoBuilder.followPath(path1),
+            new WaitCommand(1.0), // Shoot
+            AutoBuilder.followPath(path2),
+            new WaitCommand(1.2), // intake
+            AutoBuilder.followPath(path3),
+            new WaitCommand(1.5) // Shoot
         );
 
         return new PathPlannerAuto(cmd, startingPose);

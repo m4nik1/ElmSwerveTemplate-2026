@@ -25,6 +25,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -179,8 +180,9 @@ public class DriveTrain extends SubsystemBase {
   }
 
   public Command zeroGyro() {
-    return run(() -> {
+    return Commands.runOnce(() -> {
       gyro.setYaw(0);
+      resetPose(new Pose2d(getPose().getX(), getPose().getY(), Rotation2d.fromDegrees(0)));
     });
   }
 
@@ -198,6 +200,7 @@ public class DriveTrain extends SubsystemBase {
     // Update pose with odometry using odom
     Logger.recordOutput("robotAngle", getYaw().getDegrees());
     Logger.recordOutput("robotPose", getPose());
+    
 
   }
 }
