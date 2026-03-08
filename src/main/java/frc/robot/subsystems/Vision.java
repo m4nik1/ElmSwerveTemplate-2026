@@ -32,13 +32,15 @@ public class Vision extends SubsystemBase {
   private final PhotonPoseEstimator photonEstimator;
 
   private AprilTagFieldLayout aprilTagFieldLayout;
+  private boolean isLeftCamera = false;
 
   private double lastSeenYawAlign = 0.0;
   private double alignDistance = 0.0;
 
-  public Vision(String name, Transform3d robotToCamera) {
+  public Vision(String name, Transform3d robotToCamera, boolean isLeftCamera) {
     camera = new PhotonCamera(name);
     aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark);
+    this.isLeftCamera = isLeftCamera;
 
     photonEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
         robotToCamera);
@@ -109,25 +111,58 @@ public class Vision extends SubsystemBase {
         }
       }
 
-      if (camera.getName() == "elm_left_cam") {
-        photonEstimator.update(result).ifPresent(est -> {
-          if (est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.15) {
-            // If we only have one target and its pose ambiguity is high, skip updating the
-            // pose
-            return;
-          }
-          // getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
-          var curStdDevs = getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
+      photonEstimator.update(result).ifPresent(est -> {
+        if (est.targetsUsed.size() == 1 && est.targetsUsed.get(0).getPoseAmbiguity() > 0.10) {
+          // If we only have one target and its pose ambiguity is high, skip updating the
+          // pose
+          return;
+        }
 
-          if (curStdDevs != null) {
-            RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds,
-                curStdDevs);
-          }
-        });
-      }
+        Matrix<N3, N1> curStdDevs;
+
+        if (isLeftCamera) {
+          // getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
+          curStdDevs = getEstStdDevsBackCamera(est, getAverageDistance(est.targetsUsed));
+        } else {
+          curStdDevs = getEstimationStdDevs(est, getAverageDistance(est.targetsUsed));
+        }
+
+        if (curStdDevs != null) {
+          RobotContainer.driveTrain.updatePoseEstimate(est.estimatedPose.toPose2d(), est.timestampSeconds,
+              curStdDevs);
+        }
+      });
     }
     // Logger.recordOutput("targetFound " + camera.getName(), targetFound());
     Logger.recordOutput("Vision Yaw " + camera.getName(), getYawAlign());
+  }
+
+  private Matrix<N3, N1> getEstStdDevsBackCamera(EstimatedRobotPose est, double distance) {
+    double stdDeviation = 2;
+    boolean isMultiTag = est.targetsUsed.size() > 1;
+
+    if (!isMultiTag) {
+      if (distance < 1)
+        stdDeviation = 0.35; // was .22
+      else if (distance <= 1.75)
+        stdDeviation = 0.7;
+      else if (distance < 2.5)
+        stdDeviation = 1.4;
+      else
+        return VecBuilder.fill(99, 99, 99);
+    } else { // This means it is multitag
+      if (distance < 1)
+        stdDeviation = 0.10;
+      else if (distance < 2)
+        stdDeviation = 0.20;
+      else if (distance < 4)
+        stdDeviation = 0.40;
+      else
+        return VecBuilder.fill(99, 99, 99);
+    }
+
+    // Fallback defaults: fairly conservative uncertainty (meters, meters, radians)
+    return VecBuilder.fill(stdDeviation, stdDeviation, 999999.0);
   }
 
   /** Returns the current estimation standard deviations (x, y, theta). */
@@ -136,9 +171,9 @@ public class Vision extends SubsystemBase {
     double stdDeviation = 2;
     boolean isMultiTag = est.targetsUsed.size() > 1;
 
-    Logger.recordOutput("Auto/alignDistance", getDistanceClosestCamera(est.targetsUsed, est));
-    Logger.recordOutput("Auto/AverageDistance", averageDistance);
-    Logger.recordOutput("Is multitag", isMultiTag);
+    Logger.recordOutput("Vision/alignDistance", getDistanceClosestCamera(est.targetsUsed, est));
+    Logger.recordOutput("Vision/AverageDistance", averageDistance);
+    Logger.recordOutput("Vision/Is_multitag", isMultiTag);
 
     if (!isMultiTag) {
       if (averageDistance < 1)

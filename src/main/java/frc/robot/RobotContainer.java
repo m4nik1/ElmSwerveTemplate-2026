@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
+
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.Vision;
@@ -39,7 +40,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
-
 public class RobotContainer {
   private static final String AUTO_CHOOSER_KEY = "autoChooser";
   private static final String AUTO_PREVIEW_KEY = "Auto Preview";
@@ -52,31 +52,33 @@ public class RobotContainer {
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
   private final Field2d autoPreviewField = new Field2d();
   private final Map<Command, String> commandToAutoFile = new IdentityHashMap<>();
-  
-  // public static Vision visionRight = new Vision("elm_right_cam", new Transform3d(
-  //   Units.inchesToMeters(-3.5), Units.inchesToMeters(13), 0.0, 
-  //   new Rotation3d(0, Units.degreesToRadians(-20), 0)
-  // ));
+
+  // public static Vision visionRight = new Vision("elm_right_cam", new
+  // Transform3d(
+  // Units.inchesToMeters(-3.5), Units.inchesToMeters(13), 0.0,
+  // new Rotation3d(0, Units.degreesToRadians(-20), 0)
+  // ), true);
 
   public static Vision visionLeft = new Vision(
-    "elm_left_cam", new Transform3d(
-    Units.inchesToMeters(-3.5), Units.inchesToMeters(-13), 0.0, 
-    new Rotation3d(0, Rotation2d.fromDegrees(-20).getRadians(), 0)
-  ));
+      "elm_left_cam", new Transform3d(
+          Units.inchesToMeters(-3.5), Units.inchesToMeters(-13), 0.0,
+          new Rotation3d(0, Rotation2d.fromDegrees(-20).getRadians(), 0)),
+      false);
 
-  public static CommandXboxController controller= new CommandXboxController(0);
+  public static CommandXboxController controller = new CommandXboxController(0);
 
   public RobotContainer() {
     // Configure the trigger bindings
     driveTrain.setDefaultCommand(DriveCommands.teleopDrive(
-      ()->-controller.getLeftY(), 
-      ()->-controller.getLeftX() , 
-      ()->-controller.getRightX()
-    ));
+        () -> -controller.getLeftY(),
+        () -> -controller.getLeftX(),
+        () -> -controller.getRightX()));
 
     configureBindings();
-    // Add new autos here. Display name is what appears in Elastic/SmartDashboard chooser,
-    // auto file name must match src/main/deploy/pathplanner/autos/<name>.auto (without .auto).
+    // Add new autos here. Display name is what appears in Elastic/SmartDashboard
+    // chooser,
+    // auto file name must match src/main/deploy/pathplanner/autos/<name>.auto
+    // (without .auto).
     registerAuto("StraightAutotest", "Straight test P", true);
     registerAuto("Rightside90", "Right Side 90", false);
 
@@ -85,14 +87,14 @@ public class RobotContainer {
     SmartDashboard.putData(AUTO_PREVIEW_KEY, autoPreviewField);
     updateAutoPreviewForCommand(autoChooser.getSelected());
   }
-    
 
   private void configureBindings() {
-    // controller.a().onTrue(DriveCommands.autoAimMove(()->-controller.getLeftY(),() ->-controller.getRightX()));
+    // controller.a().onTrue(DriveCommands.autoAimMove(()->-controller.getLeftY(),()
+    // ->-controller.getRightX()));
     controller.leftBumper().onTrue(driveTrain.zeroGyro());
   }
 
-  public static boolean getA(){
+  public static boolean getA() {
     return controller.a().getAsBoolean();
   }
 
@@ -103,7 +105,8 @@ public class RobotContainer {
   private void registerAuto(String displayName, String autoFileName, boolean isDefault) {
     // Example for a new auto:
     // registerAuto("Center2Piece", "Center 2 Piece", false);
-    // Chooser autos come from PathPlanner .auto/.path files, so editing testFollowPath.java
+    // Chooser autos come from PathPlanner .auto/.path files, so editing
+    // testFollowPath.java
     // alone will not change what this selected autonomous routine does.
     Command autoCommand = new PathPlannerAuto(autoFileName);
     commandToAutoFile.put(autoCommand, autoFileName);
