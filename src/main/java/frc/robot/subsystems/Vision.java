@@ -142,21 +142,21 @@ public class Vision extends SubsystemBase {
     boolean isMultiTag = est.targetsUsed.size() > 1;
 
     if (!isMultiTag) {
-      if (distance < 1)
-        stdDeviation = 0.35; // was .22
-      else if (distance <= 1.75)
-        stdDeviation = 0.7;
-      else if (distance < 2.5)
-        stdDeviation = 1.4;
+      if (distance < 1.0)
+        stdDeviation = 0.45;
+      else if (distance < 2.0)
+        stdDeviation = 0.85;
+      else if (distance < 3.0)
+        stdDeviation = 1.6;
       else
         return VecBuilder.fill(99, 99, 99);
-    } else { // This means it is multitag
-      if (distance < 1)
-        stdDeviation = 0.10;
-      else if (distance < 2)
-        stdDeviation = 0.20;
-      else if (distance < 4)
-        stdDeviation = 0.40;
+    } else {
+      if (distance < 1.5)
+        stdDeviation = 0.16;
+      else if (distance < 2.5)
+        stdDeviation = 0.28;
+      else if (distance < 4.0)
+        stdDeviation = 0.55;
       else
         return VecBuilder.fill(99, 99, 99);
     }
