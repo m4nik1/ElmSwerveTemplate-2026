@@ -1,17 +1,13 @@
 package frc.robot;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -96,6 +92,20 @@ public final class Constants {
             Constants.fieldLayout.getTagPose(26).get().getX() + width / 2.0,
             Constants.fieldLayout.getFieldWidth() / 2.0,
             innerHeight);
+
+    public static final Pose3d TAG_26_POSE =
+        Constants.fieldLayout.getTagPose(26).orElseThrow();
+
+    public static final Rotation2d TAG_26_HEADING =
+        TAG_26_POSE.getRotation().toRotation2d();
+
+    public static final double TAG_TO_HUB_CENTER =
+        Units.inchesToMeters(23.765);
+
+    public static final Translation2d HUB_CENTER_TRULY =
+        TAG_26_POSE.toPose2d().getTranslation().plus(
+            new Translation2d(TAG_TO_HUB_CENTER, TAG_26_HEADING)
+        );
 
     public static final double driveKp = 1.5;   
     public static final double driveKi = 0.0;
