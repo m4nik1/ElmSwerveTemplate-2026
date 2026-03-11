@@ -257,7 +257,7 @@ public class ElmCityModule extends SubsystemBase {
     // converts velocity to Rotation per second with wheel curcumfirence
     driveVelocity.Velocity = vel / Constants.wheelCircum;
 
-     driveVelocity.Slot = 0;
+    driveVelocity.Slot = 0;
     
     // sets the feedforward to simple feedforward calculation with the requested speed
     driveVelocity.FeedForward = driveKfCalc.calculate(vel);
@@ -273,6 +273,7 @@ public class ElmCityModule extends SubsystemBase {
     SmartDashboard.putNumber("Distance (M)" + modNum, getDrivePosMeters());
     SmartDashboard.putNumber("Nac coder rot " + modNum, getNac());
     SmartDashboard.putNumber("Module Angle "+ modNum, getAngleDegrees());
+    SmartDashboard.putNumber("Velocity " + modNum , getDriveVelocityConversion());
 
     Logger.recordOutput("Distance (M)" + modNum, getDrivePosMeters());
     Logger.recordOutput("Velocity " + modNum , getDriveVelocityConversion());
